@@ -30,7 +30,7 @@ public class Day1 : IDaySolver
     public string SolvePart2(string[] loadedInput) => "test";
 
     public string TestData =>
-        """
+"""
 1000
 2000
 3000
