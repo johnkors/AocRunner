@@ -1,6 +1,6 @@
-global using static System.Console;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 public static partial class Program
 {
@@ -9,24 +9,56 @@ public static partial class Program
     private static string? _session;
     private const string EnvVariablename = "AOC_SESSION";
 
-    public static void Solve1(IDaySolver solver, bool useTestInput = false)
+    public static void Solve1(IDaySolver solver, bool test = false, bool askForSubmit = false)
     {
-        WriteLine($"Solving part 1 for day {solver.Day}..");
-        Solve(solver, s => s.SolvePart1, useTestInput);
+        Info($"Solving day {solver.Day} - part 1");
+        var sln = Solve(solver, s => s.SolvePart1, s => s.ExpectedForTestInputPart1, test);
+        if (sln != null && askForSubmit)
+        {
+            var submit = ShouldSubmit(sln);
+            if (submit)
+            {
+                var res = PostAnswer(solver.Day, 2, sln);
+                External(res);
+            }
+        }
+        Info("");
     }
 
-    public static void Solve2(IDaySolver solver, bool useTestInput = false)
+    public static void Solve2(IDaySolver solver, bool test = false, bool askForSubmit = false)
     {
-        WriteLine($"Solving part 2 for day {solver.Day}..");
-        Solve(solver, s => s.SolvePart2, useTestInput);
+        Info($"Solving day {solver.Day} - part 2");
+        var sln = Solve(solver, s => s.SolvePart2, s => s.ExpectedForTestInputPart2, test);
+        if (sln != null &&  askForSubmit)
+        {
+            var submit = ShouldSubmit(sln);
+            if (submit)
+            {
+                var res = PostAnswer(solver.Day, 2, sln);
+                External(res);
+            }
+        }
     }
 
-    static void Login(int day)
+    static bool ShouldSubmit(string sln)
+    {
+        Console.Write($"Submit '{sln}'? y/n: ");
+        char answer = Console.ReadKey().KeyChar;
+        Console.WriteLine();
+        if (answer == 'y')
+        {
+            return true;
+        }
+        Warn("Not submitting");
+        return false;
+    }
+
+    private static void Login(int day)
     {
         var environmentVariable = Environment.GetEnvironmentVariable(EnvVariablename);
         if (environmentVariable is not { })
         {
-            Error.WriteLine("⛔️ Please set the AOC_SESSION env variable");
+            Error("⛔️ Please set the AOC_SESSION env variable");
             Environment.Exit(-1);
         }
 
@@ -35,41 +67,65 @@ public static partial class Program
         var res = HttpClient.GetAsync($"https://adventofcode.com/2022/day/{day}/input").GetAwaiter().GetResult();
         if (!res.IsSuccessStatusCode)
         {
-            Error.WriteLine($"⛔️ Failed to login. StatusCode from adventofcode.com: {res.StatusCode}. Check/refresh your {EnvVariablename} env variable. Exiting..");
+            Error($"⛔️ Failed to login. StatusCode from adventofcode.com: {res.StatusCode}. Check/refresh your {EnvVariablename} env variable. Exiting..");
             Environment.Exit(-1);
         }
 
         _loggedIn = true;
     }
 
-    static void Solve(IDaySolver solver, Expression<Func<IDaySolver, Func<string[],string>>> daySolverAction, bool useTestInput = false)
+    delegate string SolverMethod(string[] rows);
+
+    delegate SolverMethod SolvePartMethod(IDaySolver solver);
+
+    delegate string SolvePartExpectation(IDaySolver solver);
+
+    static string? Solve(IDaySolver solver, Expression<SolvePartMethod> daySolverAction, SolvePartExpectation partExpectation,  bool test = false)
     {
         if (!_loggedIn)
         {
             Login(solver.Day);
         }
 
-        var loadedInput = LoadInput(solver, useTestInput);
-        var rows = loadedInput.Split("\n");
+        var loadedInput = LoadInput(solver, test);
+        var rows = loadedInput.Split(Environment.NewLine).Select(s => s.TrimEnd()).ToArray();
+        if (rows.Last() == "")
+            rows = rows.SkipLast(1).ToArray();
+
         var methodName = GetMethodName(daySolverAction);
         try
         {
             var solution = daySolverAction.Compile().Invoke(solver).Invoke(rows);
-            WriteLine($"✅ Solution:\n{solution}");
+            if (test)
+            {
+                string expected = partExpectation.Invoke(solver);
+                bool success = solution == expected;
+                string emoji = success ? "✅" : "❌";
+                string status = success ? "SUCCESS!" : "FAILED!";
+                Info($"{emoji} {status} Solution: {solution}. Expected {expected}");
+            }
+            else
+            {
+                Info($"Solution: {solution}");
+            }
+            return solution;
+
         }
         catch (NotImplementedException)
         {
             var type = solver.GetType();
-            WriteLine($"❌️ Could not run `{methodName}` for day {solver.Day} using '{type.Namespace}.{type.Name}'. You need to implement it!");
+            Warn($"❌️ Could not run `{methodName}` for day {solver.Day} using '{type.Namespace}.{type.Name}'. You need to implement it!");
         }
+
+        return null;
     }
 
     static string GetMethodName(LambdaExpression expression)
     {
         var unaryExpression = (UnaryExpression)expression.Body;
         var methodCallExpression = (MethodCallExpression)unaryExpression.Operand;
-        var methodCallObject = (ConstantExpression)methodCallExpression.Object;
-        var methodInfo = (MethodInfo)methodCallObject.Value;
+        var methodCallObject = (ConstantExpression)methodCallExpression.Object!;
+        var methodInfo = (MethodInfo)methodCallObject.Value!;
         return methodInfo.Name;
     }
 
@@ -78,32 +134,88 @@ public static partial class Program
         string loadedInput;
         if (useTestInput)
         {
-            if (solver.TestData == null)
+            if (string.IsNullOrWhiteSpace(solver.TestData))
             {
-                Error.WriteLine($"⛔️ FAILURE: Want to use testdata, but no testdata found for day {solver.Day}");;
+                Error($"⛔️ FAILURE: Want to use testdata, but no testdata found for day {solver.Day}");
                 Environment.Exit(-3);
             }
-            WriteLine("ℹ️ Using testdata as input!");
+            Warn("🧪️Using test data");
             loadedInput = solver.TestData;
         }
         else
         {
-            loadedInput = LoadDayInput(solver.Day).GetAwaiter().GetResult();
+            loadedInput = GetInputForDay(solver.Day).GetAwaiter().GetResult();
         }
 
         return loadedInput;
     }
 
-    static async Task<string> LoadDayInput(int day)
+    static void Info(string text)
+    {
+        Console.WriteLine(text);
+    }
+
+    static void External(string text)
+    {
+        var prev = Console.ForegroundColor;
+        Console.ForegroundColor = ConsoleColor.Blue;
+        Console.WriteLine(text);
+        Console.ForegroundColor = prev;
+    }
+
+    static void Warn(string text)
+    {
+        var prev = Console.ForegroundColor;
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine(text);
+        Console.ForegroundColor = prev;
+    }
+
+    static void Error(string text)
+    {
+        var prev = Console.ForegroundColor;
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine(text);
+        Console.ForegroundColor = prev;
+    }
+
+    static async Task<string> GetInputForDay(int day)
     {
         var res = await HttpClient.GetAsync($"https://adventofcode.com/2022/day/{day}/input");
         var body = await res.Content.ReadAsStringAsync();
         if (!res.IsSuccessStatusCode)
         {
-            WriteLine($":/ Could not load day {day} ({res.StatusCode})");
-            WriteLine($"-----");
-            WriteLine($"{body}");
-            WriteLine($"-----");
+            Info($":/ Could not load day {day} ({res.StatusCode})");
+            Info($"-----");
+            Info($"{body}");
+            Info($"-----");
+        }
+        return body;
+    }
+
+    static string PostAnswer(int day, int part, string answer)
+    {
+        var formUrlEncodedContent = new FormUrlEncodedContent(new []
+        {
+           new KeyValuePair<string, string>("level", part.ToString()),
+           new KeyValuePair<string, string>("answer", answer)
+        });
+
+        var res = HttpClient.PostAsync($"https://adventofcode.com/2022/day/{day}/answer", formUrlEncodedContent).GetAwaiter().GetResult();
+        var body = res.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+        if (!res.IsSuccessStatusCode)
+        {
+            Error($":/ Could not post answer {day} part {part} ({res.StatusCode})");
+            Error($"-----");
+            Error($"{body}");
+            Error($"-----");
+            return body;
+        }
+        var regex = new Regex(@"<main>(.*?)</main>", RegexOptions.Singleline);
+        var match = regex.Match(body);
+        if (match.Success)
+        {
+            return match.Groups[1].Value;
         }
         return body;
     }
@@ -112,12 +224,14 @@ public static partial class Program
 public interface IDaySolver
 {
     int Day { get; }
+
     string SolvePart1(string[] loadedInput);
 
-    string SolvePart2(string[] loadedInput)
-    {
-        throw new NotImplementedException();
-    }
+    string SolvePart2(string[] loadedInput);
 
-    string? TestData => null;
+    string TestData { get; }
+
+    string ExpectedForTestInputPart1 { get; }
+
+    string ExpectedForTestInputPart2 { get; }
 }

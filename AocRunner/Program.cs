@@ -1,3 +1,8 @@
 ﻿var day = new Day1();
-Solve1(day, useTestInput:true);
+#if (DEBUG)
+Solve1(day, test:true);
+Solve2(day, test:true);
+#elif (RELEASE)
+Solve1(day, askForSubmit:true);
 Solve2(day);
+#endif
