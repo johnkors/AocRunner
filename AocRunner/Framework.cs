@@ -18,7 +18,7 @@ public static partial class Program
             var submit = ShouldSubmit(sln);
             if (submit)
             {
-                var res = PostAnswer(solver.Day, 2, sln);
+                var res = PostAnswer(solver.Day, 1, sln);
                 External(res);
             }
         }
@@ -195,11 +195,12 @@ public static partial class Program
 
     static string PostAnswer(int day, int part, string answer)
     {
-        var formUrlEncodedContent = new FormUrlEncodedContent(new []
+        var nameValueCollection = new Dictionary<string,string>
         {
-           new KeyValuePair<string, string>("level", part.ToString()),
-           new KeyValuePair<string, string>("answer", answer)
-        });
+            { "level", part.ToString() },
+            { "answer", answer }
+        };
+        var formUrlEncodedContent = new FormUrlEncodedContent(nameValueCollection);
 
         var res = HttpClient.PostAsync($"https://adventofcode.com/2022/day/{day}/answer", formUrlEncodedContent).GetAwaiter().GetResult();
         var body = res.Content.ReadAsStringAsync().GetAwaiter().GetResult();
