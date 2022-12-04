@@ -67,10 +67,7 @@ public class Day2 : IDaySolver
                 Hand.Scissors => Hand.Rock
             },
 
-            Outcome.Draw => AsHand(opponent) switch
-            {
-                _ => AsHand(opponent)
-            },
+            Outcome.Draw => AsHand(opponent),
 
             Outcome.Loss => AsHand(opponent) switch
             {
