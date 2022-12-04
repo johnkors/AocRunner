@@ -42,7 +42,7 @@ public static partial class Program
 
     static bool ShouldSubmit(string sln)
     {
-        Console.Write($"Submit '{sln}'? y/n: ");
+        Info($"Submit '{sln}'? y/n: ");
         char answer = Console.ReadKey().KeyChar;
         Console.WriteLine();
         if (answer == 'y')
