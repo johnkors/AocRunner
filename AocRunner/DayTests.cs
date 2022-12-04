@@ -1,5 +1,7 @@
 using Xunit;
 
+namespace AocFramework;
+
 public abstract class DayTests
 {
     protected DayTests(IDaySolver daysolver)
@@ -16,14 +18,14 @@ public abstract class DayTests
     [Fact]
     public void TestPart1()
     {
-        var sln = Program.Solve(Daysolver, s => s.SolvePart1, () => TestData);
+        var sln = Framework.Solve(Daysolver, s => s.SolvePart1, () => TestData);
         Assert.Equal(ExpectedForTestInputPart1, sln);
     }
 
     [Fact]
     public void TestPart2()
     {
-        var sln = Program.Solve(Daysolver, s => s.SolvePart2, () => TestData);
+        var sln = Framework.Solve(Daysolver, s => s.SolvePart2, () => TestData);
         Assert.Equal(ExpectedForTestInputPart2, sln);
     }
 }

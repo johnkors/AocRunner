@@ -6,16 +6,12 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>preview</LangVersion>
-        <NoWarn>CS7022</NoWarn>
+        <NoWarn></NoWarn>       
+
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Update="Framework.cs">
-            <DependentUpon>Program.cs</DependentUpon>
-        </Compile>
-        <Compile Update="DayTests.cs">
-            <DependentUpon>Program.cs</DependentUpon>
-        </Compile>
+        <Using Include="AocFramework" />
         <Compile Update="**\*.Tests.cs">
             <DependentUpon>$([System.String]::Copy(%(Filename)).Replace('.Tests', '.cs'))</DependentUpon>
         </Compile>

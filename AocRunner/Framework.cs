@@ -2,7 +2,9 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-public static partial class Program
+namespace AocFramework;
+
+public static class Framework
 {
     private static readonly HttpClient HttpClient = new();
     private static bool _loggedIn;
@@ -12,6 +14,10 @@ public static partial class Program
     public static void Solve1(IDaySolver solver, bool askForSubmit = false)
     {
         Info($"Solving day {solver.Day} - part 1");
+        if (!_loggedIn)
+        {
+            Login(solver.Day);
+        }
         var sln = Solve(solver, s => s.SolvePart1, () => LoadInput(solver));
         if (sln != null && askForSubmit)
         {
@@ -28,6 +34,10 @@ public static partial class Program
     public static void Solve2(IDaySolver solver, bool askForSubmit = false)
     {
         Info($"Solving day {solver.Day} - part 2");
+        if (!_loggedIn)
+        {
+            Login(solver.Day);
+        }
         var sln = Solve(solver, s => s.SolvePart2, () => LoadInput(solver));
         if (sln != null && askForSubmit)
         {
@@ -82,11 +92,6 @@ public static partial class Program
 
     public static string? Solve(IDaySolver solver, Expression<SolvePartMethod> daySolverAction, LoadInputDelegate loadInput)
     {
-        if (!_loggedIn)
-        {
-            Login(solver.Day);
-        }
-
         var loadedInput = loadInput();
         var rows = loadedInput.Split(Environment.NewLine).Select(s => s.TrimEnd()).ToArray();
         if (rows.Last() == "")
