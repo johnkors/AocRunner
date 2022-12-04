@@ -7,14 +7,17 @@ public static class Framework
     private static readonly HttpClient HttpClient = new();
     private static bool _loggedIn;
     private static string? _session;
+    private static IDaySolver? _solver;
+    private static int? _solverDay;
     private const string EnvVariablename = "AOC_SESSION";
 
     public static void Solve1(IDaySolver solver, bool askForSubmit = false)
     {
-        Info($"Solving day {solver.Day} - part 1");
+        _solver = solver;
+        Info($"Solving day {GetSolverDay()} - part 1");
         if (!_loggedIn)
         {
-            Login(solver.Day);
+            Login(GetSolverDay());
         }
         var sln = Solve(solver, s => s.SolvePart1, () => LoadInput(solver));
         if (sln != null && askForSubmit)
@@ -22,7 +25,7 @@ public static class Framework
             var submit = ShouldSubmit(sln);
             if (submit)
             {
-                var res = PostAnswer(solver.Day, 1, sln);
+                var res = PostAnswer(GetSolverDay(), 1, sln);
                 External(res);
             }
         }
@@ -31,10 +34,11 @@ public static class Framework
 
     public static void Solve2(IDaySolver solver, bool askForSubmit = false)
     {
-        Info($"Solving day {solver.Day} - part 2");
+        _solver = solver;
+        Info($"Solving day {GetSolverDay()} - part 2");
         if (!_loggedIn)
         {
-            Login(solver.Day);
+            Login(GetSolverDay());
         }
         var sln = Solve(solver, s => s.SolvePart2, () => LoadInput(solver));
         if (sln != null && askForSubmit)
@@ -42,7 +46,7 @@ public static class Framework
             var submit = ShouldSubmit(sln);
             if (submit)
             {
-                var res = PostAnswer(solver.Day, 2, sln);
+                var res = PostAnswer(GetSolverDay(), 2, sln);
                 External(res);
             }
         }
@@ -90,6 +94,7 @@ public static class Framework
 
     public static string? Solve(IDaySolver solver, Expression<SolvePartMethod> daySolverAction, LoadInputDelegate loadInput)
     {
+        _solver = solver;
         var loadedInput = loadInput();
         var rows = loadedInput.Split(Environment.NewLine).Select(s => s.TrimEnd()).ToArray();
         if (rows.Last() == "")
@@ -107,10 +112,26 @@ public static class Framework
         catch (NotImplementedException)
         {
             var type = solver.GetType();
-            Warn($"❌️ Could not run `{methodName}` for day {solver.Day} using '{type.Namespace}.{type.Name}'. You need to implement it!");
+            Warn($"❌️ Could not run `{methodName}` for day {GetSolverDay()} using '{type.Namespace}.{type.Name}'. You need to implement it!");
         }
 
         return null;
+    }
+
+    private static int GetSolverDay()
+    {
+        if (_solverDay != null)
+            return _solverDay.Value;
+
+        var regex = new Regex(@"Day(\d)", RegexOptions.Singleline);
+        var match = regex.Match(_solver.GetType().Name);
+        if (match.Success)
+        {
+            _solverDay = int.Parse(match.Groups[1].Value);
+            return _solverDay.Value;
+        }
+
+        throw new NotSupportedException("Your implementation type must follow the Day<X> naming convention");
     }
 
     static string GetMethodName(LambdaExpression expression)
@@ -124,7 +145,7 @@ public static class Framework
 
     private static string LoadInput(IDaySolver solver)
     {
-        return GetInputForDay(solver.Day).GetAwaiter().GetResult();
+        return GetInputForDay(GetSolverDay()).GetAwaiter().GetResult();
     }
 
     static void Info(string text)
@@ -204,8 +225,6 @@ public static class Framework
 
 public interface IDaySolver
 {
-    int Day { get; }
-
     string SolvePart1(string[] loadedInput);
 
     string SolvePart2(string[] loadedInput);

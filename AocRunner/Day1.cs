@@ -1,7 +1,5 @@
 public class Day1 : IDaySolver
 {
-    public int Day => 1;
-
     public string SolvePart1(string[] loadedInput)
     {
         int largestElf = 0;

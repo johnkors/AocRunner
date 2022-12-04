@@ -1,7 +1,5 @@
 public class Day3 : IDaySolver
 {
-    public int Day => 3;
-
     public string SolvePart1(string[] loadedInput)
     {
         var priorityMap = BuildPriorityMap();

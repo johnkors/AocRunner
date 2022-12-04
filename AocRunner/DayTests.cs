@@ -19,6 +19,7 @@ public abstract class DayTests<T> where T: IDaySolver, new()
     public void TestPart1()
     {
         var sln = Framework.Solve(Daysolver, s => s.SolvePart1, () => TestData);
+        Assert.NotNull(sln);
         Assert.Equal(ExpectedForTestInputPart1, sln);
     }
 
@@ -26,6 +27,7 @@ public abstract class DayTests<T> where T: IDaySolver, new()
     public void TestPart2()
     {
         var sln = Framework.Solve(Daysolver, s => s.SolvePart2, () => TestData);
+        Assert.NotNull(sln);
         Assert.Equal(ExpectedForTestInputPart2, sln);
     }
 }
