@@ -104,6 +104,8 @@ public static partial class Program
                 string emoji = success ? "✅" : "❌";
                 string status = success ? "SUCCESS!" : "FAILED!";
                 Info($"{emoji} {status} Solution: {solution}. Expected {expected}");
+                if(!success)
+                    Environment.Exit(-1);
             }
             else
             {
