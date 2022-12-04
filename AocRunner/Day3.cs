@@ -2,19 +2,6 @@ public class Day3 : IDaySolver
 {
     public int Day => 3;
 
-    public string TestData =>
-    """
-    vJrwpWtwJgWrhcsFMMfFFhFp
-    jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
-    PmmdzqPrVvPwwTWBwg
-    wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn
-    ttgJtRGJQctTZtZT
-    CrZsJsPPZsGzwwsLwLmpwMDw
-    """;
-
-    public string ExpectedForTestInputPart1 => "157";
-    public string ExpectedForTestInputPart2 => "70";
-
     public string SolvePart1(string[] loadedInput)
     {
         var priorityMap = BuildPriorityMap();
@@ -40,7 +27,6 @@ public class Day3 : IDaySolver
         foreach (string[] group in groups)
         {
             IEnumerable<char> intersects = group.Select(c => c.AsEnumerable()).Aggregate((x, y) => x.Intersect(y));
-            Helpers.Print(intersects);
             sum += intersects.Sum(dup => priorityMap[dup]);
         }
 

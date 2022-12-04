@@ -1,19 +1,9 @@
 #pragma warning disable CS8509
 #pragma warning disable CS8524
+
 public class Day2 : IDaySolver
 {
     public int Day => 2;
-
-    public string TestData =>
-    """
-    A Y
-    B X
-    C Z
-    """;
-
-    public string ExpectedForTestInputPart1 => "15";
-    public string ExpectedForTestInputPart2 => "12";
-
 
     public string SolvePart1(string[] loadedInput)
     {

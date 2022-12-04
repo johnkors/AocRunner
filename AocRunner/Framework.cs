@@ -1,6 +1,5 @@
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 
 public static partial class Program
@@ -10,10 +9,10 @@ public static partial class Program
     private static string? _session;
     private const string EnvVariablename = "AOC_SESSION";
 
-    public static void Solve1(IDaySolver solver, bool test = false, bool askForSubmit = false)
+    public static void Solve1(IDaySolver solver, bool askForSubmit = false)
     {
         Info($"Solving day {solver.Day} - part 1");
-        var sln = Solve(solver, s => s.SolvePart1, s => s.ExpectedForTestInputPart1, test);
+        var sln = Solve(solver, s => s.SolvePart1, () => LoadInput(solver));
         if (sln != null && askForSubmit)
         {
             var submit = ShouldSubmit(sln);
@@ -26,11 +25,11 @@ public static partial class Program
         Info("");
     }
 
-    public static void Solve2(IDaySolver solver, bool test = false, bool askForSubmit = false)
+    public static void Solve2(IDaySolver solver, bool askForSubmit = false)
     {
         Info($"Solving day {solver.Day} - part 2");
-        var sln = Solve(solver, s => s.SolvePart2, s => s.ExpectedForTestInputPart2, test);
-        if (sln != null &&  askForSubmit)
+        var sln = Solve(solver, s => s.SolvePart2, () => LoadInput(solver));
+        if (sln != null && askForSubmit)
         {
             var submit = ShouldSubmit(sln);
             if (submit)
@@ -75,20 +74,20 @@ public static partial class Program
         _loggedIn = true;
     }
 
-    delegate string SolverMethod(string[] rows);
+    public delegate string SolverMethod(string[] rows);
 
-    delegate SolverMethod SolvePartMethod(IDaySolver solver);
+    public delegate SolverMethod SolvePartMethod(IDaySolver solver);
 
-    delegate string SolvePartExpectation(IDaySolver solver);
+    public delegate string LoadInputDelegate();
 
-    static string? Solve(IDaySolver solver, Expression<SolvePartMethod> daySolverAction, SolvePartExpectation partExpectation,  bool test = false)
+    public static string? Solve(IDaySolver solver, Expression<SolvePartMethod> daySolverAction, LoadInputDelegate loadInput)
     {
         if (!_loggedIn)
         {
             Login(solver.Day);
         }
 
-        var loadedInput = LoadInput(solver, test);
+        var loadedInput = loadInput();
         var rows = loadedInput.Split(Environment.NewLine).Select(s => s.TrimEnd()).ToArray();
         if (rows.Last() == "")
             rows = rows.SkipLast(1).ToArray();
@@ -97,20 +96,8 @@ public static partial class Program
         try
         {
             var solution = daySolverAction.Compile().Invoke(solver).Invoke(rows);
-            if (test)
-            {
-                string expected = partExpectation.Invoke(solver);
-                bool success = solution == expected;
-                string emoji = success ? "✅" : "❌";
-                string status = success ? "SUCCESS!" : "FAILED!";
-                Info($"{emoji} {status} Solution: {solution}. Expected {expected}");
-                if(!success)
-                    Environment.Exit(-1);
-            }
-            else
-            {
-                Info($"Solution: {solution}");
-            }
+            Info($"Solution: {solution}");
+
             return solution;
 
         }
@@ -132,25 +119,9 @@ public static partial class Program
         return methodInfo.Name;
     }
 
-    private static string LoadInput(IDaySolver solver, bool useTestInput)
+    private static string LoadInput(IDaySolver solver)
     {
-        string loadedInput;
-        if (useTestInput)
-        {
-            if (string.IsNullOrWhiteSpace(solver.TestData))
-            {
-                Error($"⛔️ FAILURE: Want to use testdata, but no testdata found for day {solver.Day}");
-                Environment.Exit(-3);
-            }
-            Warn("🧪️Using test data");
-            loadedInput = solver.TestData;
-        }
-        else
-        {
-            loadedInput = GetInputForDay(solver.Day).GetAwaiter().GetResult();
-        }
-
-        return loadedInput;
+        return GetInputForDay(solver.Day).GetAwaiter().GetResult();;
     }
 
     static void Info(string text)
@@ -229,24 +200,7 @@ public interface IDaySolver
 {
     int Day { get; }
 
-    string TestData { get; }
-
-    string ExpectedForTestInputPart1 { get; }
-
-    string ExpectedForTestInputPart2 { get; }
-
     string SolvePart1(string[] loadedInput);
 
     string SolvePart2(string[] loadedInput);
-}
-
-public class Helpers
-{
-    public static void Print(object obj)
-    {
-        var prev = Console.ForegroundColor;
-        Console.ForegroundColor = ConsoleColor.DarkMagenta;
-        Console.WriteLine(JsonSerializer.Serialize(obj, new JsonSerializerOptions { WriteIndented = true }));
-        Console.ForegroundColor = prev;
-    }
 }
