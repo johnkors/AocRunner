@@ -1,12 +1,8 @@
-using AocRunner;
-
-public class Day4Tests : DayTests
+public class Day4Tests : DayTests<Day4>
 {
-    public Day4Tests() : base(new Day4()) { }
-
     protected override string TestData =>
     """
-
+    a
     """;
 
     protected override string ExpectedForTestInputPart1 => "";

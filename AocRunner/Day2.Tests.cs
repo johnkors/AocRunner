@@ -1,4 +1,4 @@
-public class Day2Tests : DayTests
+public class Day2Tests : DayTests<Day2>
 {
     protected override string TestData =>
     """
@@ -9,6 +9,4 @@ public class Day2Tests : DayTests
 
     protected override string ExpectedForTestInputPart1 => "15";
     protected override string ExpectedForTestInputPart2 => "12";
-
-    public Day2Tests() : base(new Day2()) { }
 }

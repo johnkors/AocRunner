@@ -1,7 +1,5 @@
-public class Day1Tests : DayTests
+public class Day1Tests : DayTests<Day1>
 {
-    public Day1Tests() : base(new Day1()){}
-
     protected override string TestData =>
     """
     1000

@@ -2,8 +2,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace AocFramework;
-
 public static class Framework
 {
     private static readonly HttpClient HttpClient = new();
@@ -126,7 +124,7 @@ public static class Framework
 
     private static string LoadInput(IDaySolver solver)
     {
-        return GetInputForDay(solver.Day).GetAwaiter().GetResult();;
+        return GetInputForDay(solver.Day).GetAwaiter().GetResult();
     }
 
     static void Info(string text)
@@ -139,6 +137,7 @@ public static class Framework
         var prev = Console.ForegroundColor;
         Console.ForegroundColor = ConsoleColor.Blue;
         Console.WriteLine(text);
+        Console.Out.Flush();
         Console.ForegroundColor = prev;
     }
 
@@ -147,6 +146,7 @@ public static class Framework
         var prev = Console.ForegroundColor;
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine(text);
+        Console.Out.Flush();
         Console.ForegroundColor = prev;
     }
 
@@ -155,6 +155,7 @@ public static class Framework
         var prev = Console.ForegroundColor;
         Console.ForegroundColor = ConsoleColor.Red;
         Console.WriteLine(text);
+        Console.Out.Flush();
         Console.ForegroundColor = prev;
     }
 

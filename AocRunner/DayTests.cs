@@ -2,11 +2,11 @@ using Xunit;
 
 namespace AocFramework;
 
-public abstract class DayTests
+public abstract class DayTests<T> where T: IDaySolver, new()
 {
-    protected DayTests(IDaySolver daysolver)
+    protected DayTests()
     {
-        Daysolver = daysolver;
+        Daysolver = new T();
     }
 
     private IDaySolver Daysolver { get; }
