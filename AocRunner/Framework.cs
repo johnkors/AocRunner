@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 public static partial class Program
@@ -226,13 +227,24 @@ public interface IDaySolver
 {
     int Day { get; }
 
-    string SolvePart1(string[] loadedInput);
-
-    string SolvePart2(string[] loadedInput);
-
     string TestData { get; }
 
     string ExpectedForTestInputPart1 { get; }
 
     string ExpectedForTestInputPart2 { get; }
+
+    string SolvePart1(string[] loadedInput);
+
+    string SolvePart2(string[] loadedInput);
+}
+
+public class Helpers
+{
+    public static void Print(object obj)
+    {
+        var prev = Console.ForegroundColor;
+        Console.ForegroundColor = ConsoleColor.DarkMagenta;
+        Console.WriteLine(JsonSerializer.Serialize(obj, new JsonSerializerOptions { WriteIndented = true }));
+        Console.ForegroundColor = prev;
+    }
 }
