@@ -1,4 +1,4 @@
-﻿var day = new Day1();
+﻿var day = new Day2();
 #if (DEBUG)
 Solve1(day, test:true);
 Solve2(day, test:true);
