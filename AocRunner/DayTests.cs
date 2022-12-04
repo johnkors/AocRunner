@@ -13,7 +13,7 @@ public abstract class DayTests<T> where T: IDaySolver, new()
 
     protected abstract string TestData { get; }
     protected abstract string ExpectedForTestInputPart1 { get; }
-    protected abstract string ExpectedForTestInputPart2 { get; }
+    protected virtual string ExpectedForTestInputPart2 => "??? No expectation set yet ???";
 
     [Fact]
     public void TestPart1()

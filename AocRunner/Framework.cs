@@ -124,7 +124,7 @@ public static class Framework
             return _solverDay.Value;
 
         var regex = new Regex(@"Day(\d)", RegexOptions.Singleline);
-        var match = regex.Match(_solver.GetType().Name);
+        var match = regex.Match(_solver!.GetType().Name);
         if (match.Success)
         {
             _solverDay = int.Parse(match.Groups[1].Value);
@@ -227,5 +227,5 @@ public interface IDaySolver
 {
     string SolvePart1(string[] loadedInput);
 
-    string SolvePart2(string[] loadedInput);
+    string SolvePart2(string[] loadedInput) => "Not implemented";
 }
