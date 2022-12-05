@@ -27,6 +27,8 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
+        <PackageReference Include="xunit.runner.utility" Version="2.4.1" />
+
     </ItemGroup>
 
 </Project>
