@@ -54,7 +54,8 @@ public static class Framework
 
     static bool ShouldSubmit(string sln)
     {
-        Info($"Submit '{sln}'? y/n: ");
+        Ask($"Submit '{sln}'? y/n: ");
+
         char answer = Console.ReadKey().KeyChar;
         Console.WriteLine();
         if (answer == 'y')
@@ -104,7 +105,7 @@ public static class Framework
         try
         {
             var solution = daySolverAction.Compile().Invoke(solver).Invoke(rows);
-            Info($"Solution: {solution}");
+            Info($"Solution: '{solution}'");
 
             return solution;
 
@@ -145,16 +146,23 @@ public static class Framework
 
     static void Info(string text)
     {
+        Console.ForegroundColor = ConsoleColor.Gray;
         Console.WriteLine(text);
+        Console.ResetColor();
+    }
+
+    static void Ask(string text)
+    {
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.Write(text);
+        Console.ResetColor();
     }
 
     static void External(string text)
     {
-        var prev = Console.ForegroundColor;
         Console.ForegroundColor = ConsoleColor.Blue;
         Console.WriteLine(text);
-        Console.Out.Flush();
-        Console.ForegroundColor = prev;
+        Console.ResetColor();
     }
 
     static void Warn(string text)
@@ -162,17 +170,14 @@ public static class Framework
         var prev = Console.ForegroundColor;
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine(text);
-        Console.Out.Flush();
-        Console.ForegroundColor = prev;
+        Console.ResetColor();
     }
 
     static void Error(string text)
     {
-        var prev = Console.ForegroundColor;
         Console.ForegroundColor = ConsoleColor.Red;
         Console.WriteLine(text);
-        Console.Out.Flush();
-        Console.ForegroundColor = prev;
+        Console.ResetColor();
     }
 
     static async Task<string> GetInputForDay(int day)

@@ -14,13 +14,14 @@ public static class Test
     // Start out assuming success; we'll set this to 1 if we get a failed test
     static int result = 0;
 
-    public static void Run<T>(DayTests<T> baseTest) where T: IDaySolver, new()
+    public static void Verify<T>(DayTests<T> baseTest) where T: IDaySolver, new()
     {
         using var runner = AssemblyRunner.WithoutAppDomain(Assembly.GetExecutingAssembly().Location);
         runner.OnDiscoveryComplete = OnDiscoveryComplete;
         runner.OnExecutionComplete = OnExecutionComplete;
         runner.OnTestFailed = OnTestFailed;
         runner.OnTestSkipped = OnTestSkipped;
+        runner.OnTestPassed = OnTestPassed;
 
         Console.WriteLine("Discovering...");
         runner.Start(baseTest.GetType().Name);
@@ -60,6 +61,18 @@ public static class Test
         }
 
         result = 1;
+    }
+
+    static void OnTestPassed(TestPassedInfo info)
+    {
+        lock (consoleLock)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("[PASSED] {0}: {1}", info.TestDisplayName, info.Output);
+            Console.ResetColor();
+        }
+
+        result = 0;
     }
 
     static void OnTestSkipped(TestSkippedInfo info)
