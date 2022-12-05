@@ -19,7 +19,7 @@ public static class Framework
         {
             Login(GetSolverDay());
         }
-        var sln = Solve(solver, s => s.SolvePart1, () => LoadInput(solver));
+        var sln = Solve(solver, s => s.SolvePart1);
         if (sln != null && askForSubmit)
         {
             var submit = ShouldSubmit(sln);
@@ -40,7 +40,7 @@ public static class Framework
         {
             Login(GetSolverDay());
         }
-        var sln = Solve(solver, s => s.SolvePart2, () => LoadInput(solver));
+        var sln = Solve(solver, s => s.SolvePart2);
         if (sln != null && askForSubmit)
         {
             var submit = ShouldSubmit(sln);
@@ -92,10 +92,10 @@ public static class Framework
 
     public delegate string LoadInputDelegate();
 
-    public static string? Solve(IDaySolver solver, Expression<SolvePartMethod> daySolverAction, LoadInputDelegate loadInput)
+    public static string? Solve(IDaySolver solver, Expression<SolvePartMethod> daySolverAction, LoadInputDelegate? loadInput = null)
     {
         _solver = solver;
-        var loadedInput = loadInput();
+        var loadedInput = loadInput?.Invoke() ?? GetInputForDay(GetSolverDay()).GetAwaiter().GetResult();
         var rows = loadedInput.Split(Environment.NewLine).Select(s => s.TrimEnd()).ToArray();
         if (rows.Last() == "")
             rows = rows.SkipLast(1).ToArray();
@@ -141,11 +141,6 @@ public static class Framework
         var methodCallObject = (ConstantExpression)methodCallExpression.Object!;
         var methodInfo = (MethodInfo)methodCallObject.Value!;
         return methodInfo.Name;
-    }
-
-    private static string LoadInput(IDaySolver solver)
-    {
-        return GetInputForDay(GetSolverDay()).GetAwaiter().GetResult();
     }
 
     static void Info(string text)
