@@ -15,6 +15,7 @@
 
     <ItemGroup>
         <Using Include="AocFramework" />
+        <Using Include="System.Collections" />
         <Using Include="Xunit.Abstractions" />
         <Using Include="Xunit.Sdk" />
         <Compile Update="**\*.Tests.cs">
