@@ -1,5 +1,6 @@
 public class Day2Tests : DayTests<Day2>
 {
+    public Day2Tests(ITestOutputHelper helper) : base(helper) { }
     protected override string TestData =>
     """
     A Y

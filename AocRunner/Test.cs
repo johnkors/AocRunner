@@ -28,6 +28,7 @@ public static class Test
 
         finished.WaitOne();
         finished.Dispose();
+        Framework.Logger = Console.WriteLine;
 
         if(result > 0)
             System.Environment.Exit(result);
@@ -52,11 +53,7 @@ public static class Test
         lock (consoleLock)
         {
             Console.ForegroundColor = ConsoleColor.Red;
-
-            Console.WriteLine("[FAIL] {0}: {1}", info.TestDisplayName, info.ExceptionMessage);
-            if (info.ExceptionStackTrace != null)
-                Console.WriteLine(info.ExceptionStackTrace);
-
+            Console.WriteLine("[FAIL] {0} {1}", info.TestDisplayName, info.ExceptionMessage.Replace("Assert.Equal() Failure", ""));
             Console.ResetColor();
         }
 
@@ -68,7 +65,7 @@ public static class Test
         lock (consoleLock)
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("[PASSED] {0}: {1}", info.TestDisplayName, info.Output);
+            Console.WriteLine("[PASSED] {0}", info.TestDisplayName);
             Console.ResetColor();
         }
 

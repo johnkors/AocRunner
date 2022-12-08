@@ -4,9 +4,19 @@ namespace AocFramework;
 
 public abstract class DayTests<T> where T: IDaySolver, new()
 {
-    protected DayTests()
+    protected DayTests(ITestOutputHelper helper)
     {
         Daysolver = new T();
+        Framework.Logger = s =>
+        {
+            try
+            {
+                helper.WriteLine(s);
+            }
+            catch
+            {
+            }
+        };
     }
 
     private IDaySolver Daysolver { get; }
@@ -18,7 +28,8 @@ public abstract class DayTests<T> where T: IDaySolver, new()
     [Fact]
     public void TestPart1()
     {
-        var sln = Framework.Solve(Daysolver, s => s.SolvePart1, () => TestData);
+
+        var sln = Framework.Solve(Daysolver, s => s.SolvePart1, loadInput:() => TestData);
         Assert.NotNull(sln);
         Assert.Equal(ExpectedForTestInputPart1, sln);
     }
@@ -26,7 +37,7 @@ public abstract class DayTests<T> where T: IDaySolver, new()
     [Fact]
     public void TestPart2()
     {
-        var sln = Framework.Solve(Daysolver, s => s.SolvePart2, () => TestData);
+        var sln = Framework.Solve(Daysolver, s => s.SolvePart2, loadInput:() => TestData);
         Assert.NotNull(sln);
         Assert.Equal(ExpectedForTestInputPart2, sln);
     }

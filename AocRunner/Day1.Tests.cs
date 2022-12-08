@@ -1,5 +1,6 @@
 public class Day1Tests : DayTests<Day1>
 {
+    public Day1Tests(ITestOutputHelper helper) : base(helper) { }
     protected override string TestData =>
     """
     1000
@@ -20,4 +21,6 @@ public class Day1Tests : DayTests<Day1>
 
     protected override string  ExpectedForTestInputPart1 => "24000";
     protected override string  ExpectedForTestInputPart2 => "45000";
+
+
 }

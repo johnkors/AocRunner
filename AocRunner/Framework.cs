@@ -2,6 +2,8 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
+using ReverseMarkdown;
+
 public static class Framework
 {
     private static readonly HttpClient HttpClient = new();
@@ -11,6 +13,8 @@ public static class Framework
     private static int? _solverDay;
     private const string EnvVariablename = "AOC_SESSION";
 
+    public static Action<string?> Logger { get; set; } = Console.WriteLine;
+
     public static void Solve1(IDaySolver solver, bool askForSubmit = false)
     {
         _solver = solver;
@@ -18,6 +22,13 @@ public static class Framework
         if (!_loggedIn)
         {
             Login(GetSolverDay());
+        }
+
+        var unfinishedPart = GetStatus(solver);
+        if (unfinishedPart == null)
+        {
+            Info("Part 1 already finished. Skipping.");
+            return;
         }
         var sln = Solve(solver, s => s.SolvePart1);
         if (sln != null && askForSubmit)
@@ -35,11 +46,22 @@ public static class Framework
     public static void Solve2(IDaySolver solver, bool askForSubmit = false)
     {
         _solver = solver;
+
         Info($"Solving day {GetSolverDay()} - part 2");
         if (!_loggedIn)
         {
             Login(GetSolverDay());
         }
+
+        var unfinishedPart = GetStatus(solver);
+
+        if (unfinishedPart == null)
+        {
+            Info("Part 2 already finished. Skipping.");
+            return;
+        }
+
+
         var sln = Solve(solver, s => s.SolvePart2);
         if (sln != null && askForSubmit)
         {
@@ -50,6 +72,41 @@ public static class Framework
                 External(res);
             }
         }
+    }
+
+    public static int? GetStatus(IDaySolver solver)
+    {
+        _solver = solver;
+        Info($"Getting status for day {GetSolverDay()}");
+
+        if (!_loggedIn)
+        {
+            Login(GetSolverDay());
+        }
+
+        var html = GetTaskForDay(GetSolverDay()).GetAwaiter().GetResult();
+        var regex = new Regex(@"<main>(.*?)</main>", RegexOptions.Compiled);
+        var match = regex.Match(html);
+        if (match.Success)
+        {
+            html = match.Groups[1].Value;
+        }
+        var regexInput = new Regex("""<input type="hidden" name="level" value="(.*?)\"/>""", RegexOptions.Compiled);
+        var inputMatches = regexInput.Match(html);
+
+        int? unfinishedPart = null;
+        if (inputMatches.Success)
+        {
+            string value = inputMatches.Groups[1].Value;
+            unfinishedPart = int.Parse(value);
+            Info($"Part {unfinishedPart} unfinished…");
+        }
+        else
+        {
+            Info("No unfinished business!");
+        }
+
+        return unfinishedPart;
     }
 
     static bool ShouldSubmit(string sln)
@@ -91,13 +148,20 @@ public static class Framework
 
     public delegate SolverMethod SolvePartMethod(IDaySolver solver);
 
-    public delegate string LoadInputDelegate();
+    public delegate string? LoadInputDelegate();
 
     public static string? Solve(IDaySolver solver, Expression<SolvePartMethod> daySolverAction, LoadInputDelegate? loadInput = null)
     {
         _solver = solver;
-        var loadedInput = loadInput?.Invoke() ?? GetInputForDay(GetSolverDay()).GetAwaiter().GetResult();
-        var rows = loadedInput.Split(Environment.NewLine).Select(s => s.TrimEnd()).ToArray();
+        string? loadedInput = loadInput != null ? loadInput.Invoke() : GetInputForDay(GetSolverDay()).GetAwaiter().GetResult();
+        if (string.IsNullOrEmpty(loadedInput))
+        {
+            Error("Failed to load input. Check your `TestData`");
+            Environment.Exit(-1);
+        }
+
+
+        var rows = loadedInput.Split(Environment.NewLine).ToArray();
         if (rows.Last() == "")
             rows = rows.SkipLast(1).ToArray();
 
@@ -118,6 +182,51 @@ public static class Framework
 
         return null;
     }
+
+    static void Info(string text)
+    {
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Logger(text);
+        Console.ResetColor();
+    }
+
+    static void Ask(string text)
+    {
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Logger(text);
+        Console.ResetColor();
+    }
+
+    static void External(string html)
+    {
+        Config config = new Config
+        {
+            UnknownTags = Config.UnknownTagsOption.Bypass,
+            GithubFlavored = true,
+            SmartHrefHandling = true,
+            RemoveComments = true,
+        };
+        var converter = new Converter(config);
+        var mkd = converter.Convert(html);
+        Console.ForegroundColor = ConsoleColor.Blue;
+        Console.WriteLine(mkd);
+        Console.ResetColor();
+    }
+
+    static void Warn(string text)
+    {
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Logger(text);
+        Console.ResetColor();
+    }
+
+    static void Error(string text)
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Logger(text);
+        Console.ResetColor();
+    }
+
 
     private static int GetSolverDay()
     {
@@ -144,49 +253,31 @@ public static class Framework
         return methodInfo.Name;
     }
 
-    static void Info(string text)
-    {
-        Console.ForegroundColor = ConsoleColor.Gray;
-        Console.WriteLine(text);
-        Console.ResetColor();
-    }
-
-    static void Ask(string text)
-    {
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.Write(text);
-        Console.ResetColor();
-    }
-
-    static void External(string text)
-    {
-        Console.ForegroundColor = ConsoleColor.Blue;
-        Console.WriteLine(text);
-        Console.ResetColor();
-    }
-
-    static void Warn(string text)
-    {
-        var prev = Console.ForegroundColor;
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine(text);
-        Console.ResetColor();
-    }
-
-    static void Error(string text)
-    {
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine(text);
-        Console.ResetColor();
-    }
-
     static async Task<string> GetInputForDay(int day)
     {
         var res = await HttpClient.GetAsync($"https://adventofcode.com/2022/day/{day}/input");
         var body = await res.Content.ReadAsStringAsync();
         if (!res.IsSuccessStatusCode)
         {
-            Info($":/ Could not load day {day} ({res.StatusCode})");
+            Info($":/ Could not input day {day} ({res.StatusCode})");
+
+            Info($"-----");
+            Info($"{body}");
+            Info($"-----");
+            Error($"⛔️ Failed to fetch input. StatusCode from adventofcode.com: {res.StatusCode}. Check/refresh your {EnvVariablename} env variable. Exiting..");
+            Environment.Exit(-1);
+        }
+        return body;
+    }
+
+    static async Task<string> GetTaskForDay(int day)
+    {
+        var res = await HttpClient.GetAsync($"https://adventofcode.com/2022/day/{day}");
+        var body = await res.Content.ReadAsStringAsync();
+        if (!res.IsSuccessStatusCode)
+        {
+            Info($":/ Could not load task for day {day} ({res.StatusCode})");
+
             Info($"-----");
             Info($"{body}");
             Info($"-----");

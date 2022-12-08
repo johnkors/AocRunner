@@ -14,6 +14,7 @@ public class Day1 : IDaySolver
                     largestElf = currentElfSum;
                 }
 
+
                 currentElfSum = 0;
             }
             else
