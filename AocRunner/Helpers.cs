@@ -6,8 +6,13 @@ public static class Log
     {
         var prev = Console.ForegroundColor;
         Console.ForegroundColor = ConsoleColor.DarkMagenta;
-        Console.WriteLine(JsonSerializer.Serialize(obj, new JsonSerializerOptions { WriteIndented = true }));
+        Console.WriteLine(ToJson(obj));
         Console.Out.Flush();
         Console.ForegroundColor = prev;
+    }
+
+    public static string ToJson(object obj)
+    {
+        return JsonSerializer.Serialize(obj, new JsonSerializerOptions { WriteIndented = true });
     }
 }

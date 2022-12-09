@@ -55,7 +55,7 @@ public static class Framework
 
         var unfinishedPart = GetStatus(solver);
 
-        if (unfinishedPart == null)
+        if (unfinishedPart == null || unfinishedPart == 1)
         {
             Info("Part 2 already finished. Skipping.");
             return;
