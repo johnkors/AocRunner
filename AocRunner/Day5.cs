@@ -12,11 +12,11 @@ public class Day5 : IDaySolver
         foreach (var direction in directions)
         {
             int directionAmount = direction.Amount;
-            Framework.Logger("EXECUTING DIRECTIONS!");
-            Framework.Logger($"moving {direction.Amount} from {direction.From} to {direction.To}\n");
-            Framework.Logger("stack " +direction.From  + ":\n[" + string.Join("]\n[", stacks[direction.From].ToArray()) + "]");
-            Framework.Logger("stack " +direction.To  + ":\n[" + string.Join("]\n[", stacks[direction.To].ToArray()) + "]\n");
-            
+            // Framework.Logger("EXECUTING DIRECTIONS!");
+            // Framework.Logger($"moving {direction.Amount} from {direction.From} to {direction.To}\n");
+            // Framework.Logger("stack " +direction.From  + ":\n[" + string.Join("]\n[", stacks[direction.From].ToArray()) + "]");
+            // Framework.Logger("stack " +direction.To  + ":\n[" + string.Join("]\n[", stacks[direction.To].ToArray()) + "]\n");
+            //
             
             while (directionAmount > 0)
             {
@@ -36,19 +36,19 @@ public class Day5 : IDaySolver
                     }
 
                     stacks[direction.To] = newTo;
-                    Framework.Logger($"*Moving [{crate}]*");
+                    // Framework.Logger($"*Moving [{crate}]*");
                 }
                 else
                 {
-                    Framework.Logger($"*NO CRATE TO MOVE. Stack {direction.From} was empty");
+                    // Framework.Logger($"*NO CRATE TO MOVE. Stack {direction.From} was empty");
                 }
                 directionAmount--;
             }
-            Framework.Logger($"\n{new string('*', 60)}");
-            Framework.Logger("  AFTER:");
-            Framework.Logger("  New Stack " +direction.From  + ":\n  [" + string.Join("]\n  [", stacks[direction.From].ToArray()) + "]");
-            Framework.Logger("  New Stack " +direction.To  + ":\n  [" + string.Join("]\n  [", stacks[direction.To].ToArray()) + "]\n");
-            Framework.Logger($"{new string('*', 60)}");
+            // Framework.Logger($"\n{new string('*', 60)}");
+            // Framework.Logger("  AFTER:");
+            // Framework.Logger("  New Stack " +direction.From  + ":\n  [" + string.Join("]\n  [", stacks[direction.From].ToArray()) + "]");
+            // Framework.Logger("  New Stack " +direction.To  + ":\n  [" + string.Join("]\n  [", stacks[direction.To].ToArray()) + "]\n");
+            // Framework.Logger($"{new string('*', 60)}");
         }
 
         return string.Join("", stacks.OrderBy(c => c.Key).Select(s => s.Value.Count > 0 ? s.Value.Peek() : " "));

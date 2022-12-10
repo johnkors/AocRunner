@@ -34,10 +34,10 @@ public class Framework
             Login();
         }
 
-        var unfinishedPart = GetStatus(solver);
-        if (unfinishedPart == null)
+        var unfinishedPart = GetStatus();
+        if (unfinishedPart == null || unfinishedPart == 2)
         {
-            Info("Part 1 already finished. Skipping.");
+            Warn("Part 1 already finished!");
             return;
         }
         var sln = Solve(solver, s => s.SolvePart1);
@@ -64,11 +64,11 @@ public class Framework
             Login();
         }
 
-        var unfinishedPart = GetStatus(solver);
+        var unfinishedPart = GetStatus();
 
         if (unfinishedPart == null || unfinishedPart == 1)
         {
-            Info("Part 2 already finished. Skipping.");
+            Warn("Part 1 needs to be completed first");
             return;
         }
 
@@ -89,10 +89,8 @@ public class Framework
         }
     }
 
-    private int? GetStatus(IDaySolver solver)
+    private int? GetStatus()
     {
-        Info($"Getting status for day {GetSolverDay()}");
-
         if (!_loggedIn)
         {
             Login();
@@ -113,11 +111,6 @@ public class Framework
         {
             string value = inputMatches.Groups[1].Value;
             unfinishedPart = int.Parse(value);
-            Info($"Part {unfinishedPart} unfinished…");
-        }
-        else
-        {
-            Info("No unfinished business!");
         }
 
         return unfinishedPart;
