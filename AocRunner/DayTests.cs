@@ -26,19 +26,34 @@ public abstract class DayTests<T> where T: IDaySolver, new()
     protected virtual string ExpectedForTestInputPart2 => "??? No expectation set yet ???";
 
     [Fact]
-    public void TestPart1()
+    public void TestPart1_WithTestData()
     {
-
-        var sln = Framework.Solve(Daysolver, s => s.SolvePart1, loadInput:() => TestData);
+        var sln = Framework.Init(Daysolver).Solve(Daysolver, s => s.SolvePart1, loadInput:() => TestData);
         Assert.NotNull(sln);
         Assert.Equal(ExpectedForTestInputPart1, sln);
     }
+    
+    [Fact]
+    public void TestPart1_WithInput()
+    {
+        var framework = Framework.Init(Daysolver);
+        framework.Login();
+        var sln = framework.Solve(Daysolver, s => s.SolvePart1);
+        Assert.NotNull(sln);
+    }
 
     [Fact]
-    public void TestPart2()
+    public void TestPart2_WithTestData()
     {
-        var sln = Framework.Solve(Daysolver, s => s.SolvePart2, loadInput:() => TestData);
+        var sln = Framework.Init(Daysolver).Solve(Daysolver, s => s.SolvePart2, loadInput:() => TestData);
         Assert.NotNull(sln);
         Assert.Equal(ExpectedForTestInputPart2, sln);
     }
+    
+    // [Fact]
+    // public void TestPart2_WithInput()
+    // {
+    //     var slnRealInput = Framework.Solve(Daysolver, s => s.SolvePart2);
+    //     Assert.NotNull(slnRealInput);
+    // }
 }

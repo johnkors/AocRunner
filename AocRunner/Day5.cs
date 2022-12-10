@@ -5,16 +5,24 @@ public class Day5 : IDaySolver
     public string SolvePart1(string[] loadedInput)
     {
         var stacks = loadedInput.GetStackMapUntil(string.Empty);
-        Framework.Logger(Log.ToJson(stacks));
+        
         var directions = loadedInput.GetMatches();
         var i = 1;
 
         foreach (var direction in directions)
         {
             int directionAmount = direction.Amount;
+            Framework.Logger("EXECUTING DIRECTIONS!");
+            Framework.Logger($"moving {direction.Amount} from {direction.From} to {direction.To}\n");
+            Framework.Logger("stack " +direction.From  + ":\n[" + string.Join("]\n[", stacks[direction.From].ToArray()) + "]");
+            Framework.Logger("stack " +direction.To  + ":\n[" + string.Join("]\n[", stacks[direction.To].ToArray()) + "]\n");
+            
+            
             while (directionAmount > 0)
             {
-                Framework.Logger(direction.ToString());
+                // Framework.Logger("STATUS:");
+                // Framework.Logger($"Moving 1 from Stack " +direction.From  + ":\n[" + string.Join("]\n[", stacks[direction.From].ToArray()) + "]");
+                // Framework.Logger("To Stack " +direction.To  + ":\n[" + string.Join("]\n[", stacks[direction.To].ToArray()) + "]\n");
                 if (stacks[direction.From].Count > 0)
                 {
                     var crate = stacks[direction.From].Dequeue();
@@ -23,21 +31,27 @@ public class Day5 : IDaySolver
                     newTo.Enqueue(crate);
                     while(stacks[direction.To].Count > 0)
                     {
-                        if (stacks[direction.To].Count > 0)
-                        {
-                            var dequeue = stacks[direction.To].Dequeue();
-                            newTo.Enqueue(dequeue);
-                        }
+                        var dequeue = stacks[direction.To].Dequeue();
+                        newTo.Enqueue(dequeue);
                     }
 
                     stacks[direction.To] = newTo;
+                    Framework.Logger($"*Moving [{crate}]*");
                 }
-
+                else
+                {
+                    Framework.Logger($"*NO CRATE TO MOVE. Stack {direction.From} was empty");
+                }
                 directionAmount--;
             }
+            Framework.Logger($"\n{new string('*', 60)}");
+            Framework.Logger("  AFTER:");
+            Framework.Logger("  New Stack " +direction.From  + ":\n  [" + string.Join("]\n  [", stacks[direction.From].ToArray()) + "]");
+            Framework.Logger("  New Stack " +direction.To  + ":\n  [" + string.Join("]\n  [", stacks[direction.To].ToArray()) + "]\n");
+            Framework.Logger($"{new string('*', 60)}");
         }
 
-        return string.Join("", stacks.OrderBy(c => c.Key).Select(s => s.Value.Count > 0 ? s.Value.Peek() : ""));
+        return string.Join("", stacks.OrderBy(c => c.Key).Select(s => s.Value.Count > 0 ? s.Value.Peek() : " "));
     }
 }
 
@@ -45,7 +59,7 @@ public static class InputExtensions
 {
     public static IEnumerable<(int Amount,int From,int To)> GetMatches(this IEnumerable<string> rows)
     {
-        var regex = new Regex(@"move (\d) from (\d) to (\d)", RegexOptions.Compiled);
+        var regex = new Regex(@"move (\d+) from (\d) to (\d)", RegexOptions.Compiled);
         using IEnumerator<string> enumerator = rows.AsEnumerable().GetEnumerator();
         while (enumerator.MoveNext())
         {

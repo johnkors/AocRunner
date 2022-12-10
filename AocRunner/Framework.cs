@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 using ReverseMarkdown;
 
-public static class Framework
+public class Framework
 {
     private static readonly HttpClient HttpClient = new();
     private static bool _loggedIn;
@@ -13,15 +13,25 @@ public static class Framework
     private static int? _solverDay;
     private const string EnvVariablename = "AOC_SESSION";
 
-    public static Action<string?> Logger { get; set; } = Console.WriteLine;
+    private Framework()
+    {
+        
+    }
 
-    public static void Solve1(IDaySolver solver, bool askForSubmit = false)
+    public static Framework Init(IDaySolver solver)
     {
         _solver = solver;
+        return new Framework();
+    }
+
+    public static Action<string?> Logger { get; set; } = Console.WriteLine;
+
+    public void Solve1(IDaySolver solver, bool askForSubmit = false)
+    {
         Info($"Solving day {GetSolverDay()} - part 1");
         if (!_loggedIn)
         {
-            Login(GetSolverDay());
+            Login();
         }
 
         var unfinishedPart = GetStatus(solver);
@@ -40,17 +50,18 @@ public static class Framework
                 External(res);
             }
         }
-        Info("");
+        else
+        {
+            Environment.Exit(-1);
+        }
     }
 
-    public static void Solve2(IDaySolver solver, bool askForSubmit = false)
+    public void Solve2(IDaySolver solver, bool askForSubmit = false)
     {
-        _solver = solver;
-
         Info($"Solving day {GetSolverDay()} - part 2");
         if (!_loggedIn)
         {
-            Login(GetSolverDay());
+            Login();
         }
 
         var unfinishedPart = GetStatus(solver);
@@ -72,16 +83,19 @@ public static class Framework
                 External(res);
             }
         }
+        else
+        {
+            Environment.Exit(-1);
+        }
     }
 
-    public static int? GetStatus(IDaySolver solver)
+    private int? GetStatus(IDaySolver solver)
     {
-        _solver = solver;
         Info($"Getting status for day {GetSolverDay()}");
 
         if (!_loggedIn)
         {
-            Login(GetSolverDay());
+            Login();
         }
 
         var html = GetTaskForDay(GetSolverDay()).GetAwaiter().GetResult();
@@ -123,7 +137,7 @@ public static class Framework
         return false;
     }
 
-    private static void Login(int day)
+    public void Login()
     {
         var environmentVariable = Environment.GetEnvironmentVariable(EnvVariablename);
         if (environmentVariable is not { })
@@ -134,7 +148,7 @@ public static class Framework
 
         _session = environmentVariable;
         HttpClient.DefaultRequestHeaders.Add("cookie", new []{ $"session={_session}" });
-        var res = HttpClient.GetAsync($"https://adventofcode.com/2022/day/{day}/input").GetAwaiter().GetResult();
+        var res = HttpClient.GetAsync($"https://adventofcode.com/2022/day/{GetSolverDay()}/input").GetAwaiter().GetResult();
         if (!res.IsSuccessStatusCode)
         {
             Error($"⛔️ Failed to login. StatusCode from adventofcode.com: {res.StatusCode}. Check/refresh your {EnvVariablename} env variable. Exiting..");
@@ -150,14 +164,13 @@ public static class Framework
 
     public delegate string? LoadInputDelegate();
 
-    public static string? Solve(IDaySolver solver, Expression<SolvePartMethod> daySolverAction, LoadInputDelegate? loadInput = null)
+    public string? Solve(IDaySolver solver, Expression<SolvePartMethod> daySolverAction, LoadInputDelegate? loadInput = null)
     {
-        _solver = solver;
         string? loadedInput = loadInput != null ? loadInput.Invoke() : GetInputForDay(GetSolverDay()).GetAwaiter().GetResult();
         if (string.IsNullOrEmpty(loadedInput))
         {
-            Error("Failed to load input. Check your `TestData`");
-            Environment.Exit(-1);
+            Error("Failed to load input.");
+            return null;
         }
 
 
@@ -228,7 +241,7 @@ public static class Framework
     }
 
 
-    private static int GetSolverDay()
+    public int GetSolverDay()
     {
         if (_solverDay != null)
             return _solverDay.Value;
@@ -253,9 +266,10 @@ public static class Framework
         return methodInfo.Name;
     }
 
-    static async Task<string> GetInputForDay(int day)
+    static async Task<string?> GetInputForDay(int day)
     {
-        var res = await HttpClient.GetAsync($"https://adventofcode.com/2022/day/{day}/input");
+        string requestUri = $"https://adventofcode.com/2022/day/{day}/input";
+        var res = await HttpClient.GetAsync(requestUri);
         var body = await res.Content.ReadAsStringAsync();
         if (!res.IsSuccessStatusCode)
         {
@@ -264,8 +278,12 @@ public static class Framework
             Info($"-----");
             Info($"{body}");
             Info($"-----");
-            Error($"⛔️ Failed to fetch input. StatusCode from adventofcode.com: {res.StatusCode}. Check/refresh your {EnvVariablename} env variable. Exiting..");
-            Environment.Exit(-1);
+            
+            Error($"⛔️ Failed to fetch input from {requestUri}.\n" +
+                  $"StatusCode from adventofcode.com: {res.StatusCode}.\n" +
+                  $"Check/refresh your '{EnvVariablename}:{Environment.GetEnvironmentVariable(EnvVariablename)}' env variable. " +
+                  $"Exiting..");
+            return null;
         }
         return body;
     }
