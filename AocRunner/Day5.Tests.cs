@@ -19,12 +19,11 @@ public class Day5Tests : DayTests<Day5>
    
     protected override string ExpectedForTestInputPart1 => "CMZ";
     
-    [Fact]
-    public void TestPart1_WithInput()
-    {
-        var daySolver = new Day5();
-        var framework = Framework.Init(daySolver, _helper.WriteLine);
-        var sln = framework.Solve(daySolver, s => s.SolvePart1);
-        Assert.Equal("VJSFHWGFT", sln);
-    }
+    protected override string ExpectedForTestInputPart2 => "MCD";
+
+    protected override string ExpectedForInputPart1 => "VJSFHWGFT";
+    
+    protected override string ExpectedForInputPart2 => "LCTQFBVZV";
+
+
 }

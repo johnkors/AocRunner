@@ -17,6 +17,8 @@ public abstract class DayTests<T> where T: IDaySolver, new()
     protected abstract string TestData { get; }
     protected abstract string ExpectedForTestInputPart1 { get; }
     protected virtual string ExpectedForTestInputPart2 => "Not implemented";
+    protected virtual string ExpectedForInputPart1 => "Not implemented";
+    protected virtual string ExpectedForInputPart2 => "Not implemented";
 
     [Fact]
     public void TestPart1_WithTestData()
@@ -33,5 +35,25 @@ public abstract class DayTests<T> where T: IDaySolver, new()
         var sln = Framework.Init(Daysolver, _helper.WriteLine).Solve(Daysolver, s => s.SolvePart2, loadInput:() => TestData);
         Assert.NotNull(sln);
         Assert.Equal(ExpectedForTestInputPart2, sln);
+    }
+    
+    [SkippableFact]
+    public void TestPart1_WithInput()
+    {
+        Skip.If(ExpectedForInputPart1 == "Not implemented", "ExpectedForInputPart1 not set");
+        var daySolver = new Day5();
+        var framework = Framework.Init(daySolver, _helper.WriteLine);
+        var sln = framework.Solve(daySolver, s => s.SolvePart1);
+        Assert.Equal(ExpectedForInputPart1, sln);
+    }
+
+    [SkippableFact]
+    public void TestPart2_WithInput()
+    {
+        Skip.If(ExpectedForInputPart2 == "Not implemented", "ExpectedForInputPart2 not set");
+        var daySolver = new Day5();
+        var framework = Framework.Init(daySolver, _helper.WriteLine);
+        var sln = framework.Solve(daySolver, s => s.SolvePart2);
+        Assert.Equal(ExpectedForInputPart2, sln);
     }
 }

@@ -11,7 +11,7 @@ public class Framework
     private string? _session;
     private readonly IDaySolver? _solver;
     private int? _solverDay;
-    private static Action<string?> Logger { get; set; } = Console.WriteLine;
+    public static Action<string?> Logger { get; set; } = Console.WriteLine;
     private const string EnvVariablename = "AOC_SESSION";
 
     private Framework(IDaySolver solver)
