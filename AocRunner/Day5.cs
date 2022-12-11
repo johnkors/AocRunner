@@ -71,6 +71,7 @@ public static class InputExtensions
     public static IDictionary<int, Stack<char>> GetStacks(this IEnumerable<string> rows, string row)
     {
         var listMap = new Dictionary<int, List<char>>();
+
         using IEnumerator<string> enumerator = rows.AsEnumerable().GetEnumerator();
         while (enumerator.MoveNext())
         {
@@ -86,7 +87,7 @@ public static class InputExtensions
                         listMap.Add(stackNo, new List<char>());
                     }
                     char crateContent = prepended[i-1];
-                    listMap[stackNo].Add(crateContent);
+                    listMap[stackNo] = listMap[stackNo].Prepend(crateContent).ToList();
                 }
                 i++;
             }
@@ -98,11 +99,11 @@ public static class InputExtensions
         }
 
         var stackMap = new Dictionary<int, Stack<char>>();
-        foreach (KeyValuePair<int,List<char>> queueMapEntry in listMap.OrderBy(c => c.Key))
+        foreach (var queueMapEntry in listMap.OrderBy(c => c.Key))
         {
             var stack = new Stack<char>();
             var list = queueMapEntry.Value;
-            list.Reverse();
+            
             foreach (char crate in list)
             {
                 stack.Push(crate);
