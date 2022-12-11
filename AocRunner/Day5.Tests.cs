@@ -1,3 +1,5 @@
+using Xunit;
+
 public class Day5Tests : DayTests<Day5>
 {
     public Day5Tests(ITestOutputHelper helper) : base(helper) { }
@@ -16,5 +18,13 @@ public class Day5Tests : DayTests<Day5>
     """;
    
     protected override string ExpectedForTestInputPart1 => "CMZ";
-    protected override string ExpectedForTestInputPart2 => "Not implemented";
+    
+    [Fact]
+    public void TestPart1_WithInput()
+    {
+        var daySolver = new Day5();
+        var framework = Framework.Init(daySolver, _helper.WriteLine);
+        var sln = framework.Solve(daySolver, s => s.SolvePart1);
+        Assert.Equal("VJSFHWGFT", sln);
+    }
 }

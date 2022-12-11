@@ -6,35 +6,37 @@ using ReverseMarkdown;
 
 public class Framework
 {
-    private static readonly HttpClient HttpClient = new();
-    private static bool _loggedIn;
-    private static string? _session;
-    private static IDaySolver? _solver;
-    private static int? _solverDay;
+    private readonly HttpClient HttpClient = new();
+    private bool _loggedIn;
+    private string? _session;
+    private readonly IDaySolver? _solver;
+    private int? _solverDay;
+    private static Action<string?> Logger { get; set; } = Console.WriteLine;
     private const string EnvVariablename = "AOC_SESSION";
 
-    private Framework()
-    {
-        
-    }
-
-    public static Framework Init(IDaySolver solver)
+    private Framework(IDaySolver solver)
     {
         _solver = solver;
-        return new Framework();
     }
 
-    public static Action<string?> Logger { get; set; } = Console.WriteLine;
+    public static Framework Init(IDaySolver solver, Action<string?> logger)
+    {
+        var f = new Framework(solver);
+        f.Login();
+        f.SetLogger(logger);
+        return f;
+    }
+
+    private void SetLogger(Action<string?> logger)
+    {
+        Logger = logger;
+    }
 
     public void Solve1(IDaySolver solver, bool askForSubmit = false)
     {
         Info($"Solving day {GetSolverDay()} - part 1");
-        if (!_loggedIn)
-        {
-            Login();
-        }
 
-        var unfinishedPart = GetStatus();
+        var unfinishedPart = GetUnsolvedPart();
         if (unfinishedPart == null || unfinishedPart == 2)
         {
             Warn("Part 1 already finished!");
@@ -64,7 +66,7 @@ public class Framework
             Login();
         }
 
-        var unfinishedPart = GetStatus();
+        var unfinishedPart = GetUnsolvedPart();
 
         if (unfinishedPart == null || unfinishedPart == 1)
         {
@@ -72,9 +74,8 @@ public class Framework
             return;
         }
 
-
         var sln = Solve(solver, s => s.SolvePart2);
-        if (sln != null && askForSubmit)
+        if (sln != null && sln != "Not implemented" && askForSubmit)
         {
             var submit = ShouldSubmit(sln);
             if (submit)
@@ -87,22 +88,12 @@ public class Framework
         {
             Environment.Exit(-1);
         }
+        
     }
 
-    private int? GetStatus()
+    private int? GetUnsolvedPart()
     {
-        if (!_loggedIn)
-        {
-            Login();
-        }
-
-        var html = GetTaskForDay(GetSolverDay()).GetAwaiter().GetResult();
-        var regex = new Regex(@"<main>(.*?)</main>", RegexOptions.Compiled);
-        var match = regex.Match(html);
-        if (match.Success)
-        {
-            html = match.Groups[1].Value;
-        }
+        var html = GetHtmlForDay(GetSolverDay()).GetAwaiter().GetResult();
         var regexInput = new Regex("""<input type="hidden" name="level" value="(.*?)\"/>""", RegexOptions.Compiled);
         var inputMatches = regexInput.Match(html);
 
@@ -165,7 +156,6 @@ public class Framework
             Error("Failed to load input.");
             return null;
         }
-
 
         var rows = loadedInput.Split(Environment.NewLine).ToArray();
         if (rows.Last() == "")
@@ -259,7 +249,7 @@ public class Framework
         return methodInfo.Name;
     }
 
-    static async Task<string?> GetInputForDay(int day)
+    async Task<string?> GetInputForDay(int day)
     {
         string requestUri = $"https://adventofcode.com/2022/day/{day}/input";
         var res = await HttpClient.GetAsync(requestUri);
@@ -281,7 +271,7 @@ public class Framework
         return body;
     }
 
-    static async Task<string> GetTaskForDay(int day)
+    async Task<string> GetHtmlForDay(int day)
     {
         var res = await HttpClient.GetAsync($"https://adventofcode.com/2022/day/{day}");
         var body = await res.Content.ReadAsStringAsync();
@@ -296,7 +286,7 @@ public class Framework
         return body;
     }
 
-    static string PostAnswer(int day, int part, string answer)
+    string PostAnswer(int day, int part, string answer)
     {
         var nameValueCollection = new Dictionary<string,string>
         {
@@ -322,6 +312,26 @@ public class Framework
             return match.Groups[1].Value;
         }
         return body;
+    }
+
+    public bool HasUnsolvedParts()
+    {
+        return GetUnsolvedPart() != null;
+    }
+
+    public void PrintUnsolvedPartTask()
+    {
+        int unsolved = GetUnsolvedPart()!.Value;
+        var html = GetHtmlForDay(GetSolverDay()).GetAwaiter().GetResult();
+        var regex = new Regex(@"<main>(.*?)</main>", RegexOptions.Singleline);
+        var match = regex.Match(html);
+        if (match.Success)
+        {
+            var articleRegex = new Regex("""<article class="day-desc">(.*?)</article>""", RegexOptions.Singleline);
+            var articleMatches = articleRegex.Matches(html);
+            var partTask = articleMatches[unsolved-1].Value;
+            External(partTask);
+        }
     }
 }
 

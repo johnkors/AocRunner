@@ -7,7 +7,6 @@ public class Day5 : IDaySolver
         var stacks = loadedInput.GetStackMapUntil(string.Empty);
         
         var directions = loadedInput.GetMatches();
-        var i = 1;
 
         foreach (var direction in directions)
         {

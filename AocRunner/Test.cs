@@ -25,13 +25,9 @@ public static class Test
 
         Console.WriteLine("Discovering...");
         runner.Start(baseTest.GetType().Name);
-
+        
         finished.WaitOne();
         finished.Dispose();
-        Framework.Logger = Console.WriteLine;
-
-        if(result > 0)
-            System.Environment.Exit(result);
     }
 
     static void OnDiscoveryComplete(DiscoveryCompleteInfo info)
