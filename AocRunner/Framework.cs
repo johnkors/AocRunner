@@ -32,7 +32,7 @@ public class Framework
         Logger = logger;
     }
 
-    public void Solve1(IDaySolver solver, bool askForSubmit = false)
+    public void Solve1(IDaySolver solver)
     {
         Info($"Solving day {GetSolverDay()} - part 1");
 
@@ -43,7 +43,7 @@ public class Framework
             return;
         }
         var sln = Solve(solver, s => s.SolvePart1);
-        if (sln != null && askForSubmit)
+        if (sln != null)
         {
             var submit = ShouldSubmit(sln);
             if (submit)
@@ -52,13 +52,9 @@ public class Framework
                 External(res);
             }
         }
-        else
-        {
-            Environment.Exit(-1);
-        }
     }
 
-    public void Solve2(IDaySolver solver, bool askForSubmit = false)
+    public void Solve2(IDaySolver solver)
     {
         Info($"Solving day {GetSolverDay()} - part 2");
         if (!_loggedIn)
@@ -75,7 +71,7 @@ public class Framework
         }
 
         var sln = Solve(solver, s => s.SolvePart2);
-        if (sln != null && sln != "Not implemented" && askForSubmit)
+        if (sln != null && sln != "Not implemented")
         {
             var submit = ShouldSubmit(sln);
             if (submit)
@@ -84,11 +80,6 @@ public class Framework
                 External(res);
             }
         }
-        else
-        {
-            Environment.Exit(-1);
-        }
-        
     }
 
     private int? GetUnsolvedPart()
