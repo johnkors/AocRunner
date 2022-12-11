@@ -9,7 +9,7 @@ public class Day5 : IDaySolver
 
         foreach (var directions in directionsList)
         {
-            new StackCraneMove().Execute(directions, stacks);
+            new StackCraneMove().ModifyStacks(directions, stacks);
         }
 
         return string.Join("", stacks.OrderBy(c => c.Key).Select(s => s.Value.Peek()));
@@ -22,7 +22,7 @@ public class Day5 : IDaySolver
 
         foreach (var directions in directionsList)
         {
-            new QueueCraneMove().Execute(directions, stacks);
+            new QueueCraneMove().ModifyStacks(directions, stacks);
         }
 
         return string.Join("", stacks.OrderBy(c => c.Key).Select(s => s.Value.Peek()));
@@ -36,7 +36,7 @@ internal abstract class CraneMove
     protected abstract char PutDown();
     protected abstract int Count { get; }
     
-    public void Execute((int Amount, int From, int To) direction, IDictionary<int, Queue<char>> stacks)
+    public void ModifyStacks((int Amount, int From, int To) direction, IDictionary<int, Queue<char>> stacks)
     {
         int directionAmount = direction.Amount;
 
