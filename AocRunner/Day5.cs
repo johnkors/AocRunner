@@ -5,91 +5,110 @@ public class Day5 : IDaySolver
     public string SolvePart1(string[] loadedInput)
     {
         var stacks = loadedInput.GetStackMapUntil(string.Empty);
-        
-        var directions = loadedInput.GetMatches();
+        var directionsList = loadedInput.GetDirections();
 
-        foreach (var direction in directions)
+        foreach (var directions in directionsList)
         {
-            int directionAmount = direction.Amount;
-         
-            var newTo = new Queue<char>();
-            var tmpStack = new Stack<char>();
-            
-            while (directionAmount > 0)
-            {
-                tmpStack.Push(stacks[direction.From].Dequeue());
-                directionAmount--;
-            }
-
-            while(tmpStack.Count > 0)
-            {
-                newTo.Enqueue(tmpStack.Pop());
-            }
-            
-            while(stacks[direction.To].Count > 0)
-            {
-                newTo.Enqueue(stacks[direction.To].Dequeue());
-            }
-            
-            stacks[direction.To] = newTo;
-            
+            new StackCraneMove().Execute(directions, stacks);
         }
 
-        return string.Join("", stacks.OrderBy(c => c.Key).Select(s => s.Value.Count > 0 ? s.Value.Peek() : ' '));
-    }
-
-    private static void LogBeforeStatus((int Amount, int From, int To) direction, IDictionary<int, Queue<char>> stacks)
-    {
-        Framework.Logger("EXECUTING DIRECTIONS!");
-        Framework.Logger($"moving {direction.Amount} from {direction.From} to {direction.To}\n");
-        Framework.Logger("stack " + direction.From + ":\n[" + string.Join("]\n[", stacks[direction.From].ToArray()) + "]");
-        Framework.Logger("stack " + direction.To + ":\n[" + string.Join("]\n[", stacks[direction.To].ToArray()) + "]\n");
-    }
-
-    private static void LogAfterStatus((int Amount, int From, int To) direction, IDictionary<int, Queue<char>> stacks)
-    {
-        Framework.Logger($"\n{new string('*', 60)}");
-        Framework.Logger("  AFTER:");
-        Framework.Logger("  New Stack " + direction.From + ":\n  [" +
-                         string.Join("]\n  [", stacks[direction.From].ToArray()) + "]");
-        Framework.Logger("  New Stack " + direction.To + ":\n  [" + string.Join("]\n  [", stacks[direction.To].ToArray()) +
-                         "]\n");
-        Framework.Logger($"{new string('*', 60)}");
+        return string.Join("", stacks.OrderBy(c => c.Key).Select(s => s.Value.Peek()));
     }
 
     public string SolvePart2(string[] loadedInput)
-{
+    {
         var stacks = loadedInput.GetStackMapUntil(string.Empty);
-        
-        var directions = loadedInput.GetMatches();
+        var directionsList = loadedInput.GetDirections();
 
-        foreach (var direction in directions)
+        foreach (var directions in directionsList)
         {
-            int directionAmount = direction.Amount;
-            
-            var newTo = new Queue<char>();
-            
-            while (directionAmount > 0)
-            {
-                newTo.Enqueue(stacks[direction.From].Dequeue());
-                directionAmount--;
-            }
-
-            while(stacks[direction.To].Count > 0)
-            {
-                newTo.Enqueue(stacks[direction.To].Dequeue());
-            }
-
-            stacks[direction.To] = newTo;
+            new QueueCraneMove().Execute(directions, stacks);
         }
 
-        return string.Join("", stacks.OrderBy(c => c.Key).Select(s => s.Value.Count > 0 ? s.Value.Peek() : ' '));
+        return string.Join("", stacks.OrderBy(c => c.Key).Select(s => s.Value.Peek()));
     }
+}
+
+
+internal abstract class CraneMove
+{
+    protected abstract void Pickup(char crate);
+    protected abstract char PutDown();
+    protected abstract int Count { get; }
+    
+    public void Execute((int Amount, int From, int To) direction, IDictionary<int, Queue<char>> stacks)
+    {
+        int directionAmount = direction.Amount;
+
+        while (directionAmount > 0)
+        {
+            Pickup(stacks[direction.From].Dequeue());
+            directionAmount--;
+        }
+
+        var newTo = new Queue<char>();
+
+        while (Count > 0)
+        {
+            newTo.Enqueue(PutDown());
+        }
+
+        while (stacks[direction.To].Count > 0)
+        {
+            newTo.Enqueue(stacks[direction.To].Dequeue());
+        }
+
+        stacks[direction.To] = newTo;
+    }
+}
+
+internal class QueueCraneMove : CraneMove
+{
+    private readonly Queue<char> _queue;
+
+    public QueueCraneMove()
+    {
+        _queue = new Queue<char>();
+    }
+
+    protected override void Pickup(char crate)
+    {
+        _queue.Enqueue(crate);
+    }
+
+    protected override char PutDown()
+    {
+        return _queue.Dequeue();
+    }
+
+    protected override int Count => _queue.Count;
+}
+
+internal class StackCraneMove : CraneMove
+{
+    private readonly Stack<char> _stack;
+
+    public StackCraneMove()
+    {
+        _stack = new Stack<char>();
+    }
+
+    protected override void Pickup(char crate)
+    {
+        _stack.Push(crate);
+    }
+
+    protected override char PutDown()
+    {
+        return _stack.Pop();
+    }
+
+    protected override int Count => _stack.Count;
 }
 
 public static class InputExtensions
 {
-    public static IEnumerable<(int Amount,int From,int To)> GetMatches(this IEnumerable<string> rows)
+    public static IEnumerable<(int Amount,int From,int To)> GetDirections(this IEnumerable<string> rows)
     {
         var regex = new Regex(@"move (\d+) from (\d) to (\d)", RegexOptions.Compiled);
         using IEnumerator<string> enumerator = rows.AsEnumerable().GetEnumerator();

@@ -39,7 +39,7 @@ public class Framework
         var unfinishedPart = GetUnsolvedPart();
         if (unfinishedPart == null || unfinishedPart == 2)
         {
-            Warn("Part 1 already finished!");
+            Warn("Part 1 already complete");
             return;
         }
         var sln = Solve(solver, s => s.SolvePart1);
@@ -63,10 +63,16 @@ public class Framework
         }
 
         var unfinishedPart = GetUnsolvedPart();
-
-        if (unfinishedPart == null || unfinishedPart == 1)
+        
+        if (!unfinishedPart.HasValue)
         {
-            Warn("Part 1 needs to be completed first");
+            Warn("Part 2 already complete");
+            return;
+        }
+
+        if (unfinishedPart == 1)
+        {
+            Warn("Part 2 needs to be completed first");
             return;
         }
 
