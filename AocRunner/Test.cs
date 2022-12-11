@@ -10,9 +10,7 @@ public static class Test
 
     // Use an event to know when we're done
     static ManualResetEvent finished = new ManualResetEvent(false);
-
-    // Start out assuming success; we'll set this to 1 if we get a failed test
-    static int result = 0;
+   
 
     public static void Verify<T>(DayTests<T> baseTest) where T: IDaySolver, new()
     {
@@ -53,7 +51,6 @@ public static class Test
             Console.ResetColor();
         }
 
-        result = 1;
     }
 
     static void OnTestPassed(TestPassedInfo info)
@@ -64,8 +61,6 @@ public static class Test
             Console.WriteLine("[PASSED] {0}", info.TestDisplayName);
             Console.ResetColor();
         }
-
-        result = 0;
     }
 
     static void OnTestSkipped(TestSkippedInfo info)
