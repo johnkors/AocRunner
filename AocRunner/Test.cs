@@ -12,7 +12,7 @@ public static class Test
     static ManualResetEvent finished = new ManualResetEvent(false);
    
 
-    public static void Verify<T>(DayTests<T> baseTest) where T: IDaySolver, new()
+    public static void Verify(DayTests baseTest)
     {
         using var runner = AssemblyRunner.WithoutAppDomain(Assembly.GetExecutingAssembly().Location);
         runner.OnDiscoveryComplete = OnDiscoveryComplete;

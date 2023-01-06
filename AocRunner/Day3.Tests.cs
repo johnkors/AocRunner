@@ -1,6 +1,9 @@
-public class Day3Tests : DayTests<Day3>
+public class Day3Tests : DayTests
 {
-    public Day3Tests(ITestOutputHelper helper) : base(helper) { }
+    public Day3Tests(ITestOutputHelper helper) : base(helper)
+    {
+        Daysolver = new Day3();
+    }
     protected override string TestData =>
     """
     vJrwpWtwJgWrhcsFMMfFFhFp

@@ -1,5 +1,5 @@
-var day = new Day6();
-Test.Verify(new Day6Tests(new TestOutputHelper()));
+var day = new Day7();
+Test.Verify(new Day7Tests(new TestOutputHelper()));
 var fw = Framework.Init(day, Console.WriteLine);
 if (fw.HasUnsolvedParts())
 {

@@ -2,17 +2,16 @@ using Xunit;
 
 namespace AocFramework;
 
-public abstract class DayTests<T> where T: IDaySolver, new()
+public abstract class DayTests
 {
     protected readonly ITestOutputHelper _helper;
 
     protected DayTests(ITestOutputHelper helper)
     {
         _helper = helper;
-        Daysolver = new T();
     }
 
-    protected IDaySolver Daysolver { get; }
+    protected IDaySolver Daysolver { get; set; }
 
     protected abstract string TestData { get; }
     protected abstract string ExpectedForTestInputPart1 { get; }

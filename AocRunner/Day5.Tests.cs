@@ -1,8 +1,11 @@
 using Xunit;
 
-public class Day5Tests : DayTests<Day5>
+public class Day5Tests : DayTests
 {
-    public Day5Tests(ITestOutputHelper helper) : base(helper) { }
+    public Day5Tests(ITestOutputHelper helper) : base(helper)
+    {
+        Daysolver = new Day5();
+    }
 
     protected override string TestData =>
     """
