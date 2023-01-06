@@ -72,7 +72,7 @@ public class Framework
 
         if (unfinishedPart == 1)
         {
-            Warn("Part 2 needs to be completed first");
+            Warn("Part 1 needs to be completed first");
             return;
         }
 
