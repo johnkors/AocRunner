@@ -4,105 +4,104 @@ using _testOutputHelper = System.Console;
 
 public class Day7 : IDaySolver
 {
+    private readonly ITestOutputHelper _helper;
     private Regex cmd_changeDir = new(@"\$ cd (\w+|\/|\.{2})");
-    private Regex cmd_listDir = new(@"\$ ls");
     private Regex fs_Directory = new(@"dir (\w+)");
     private Regex fs_File = new(@"(\d+) (.*)");
+
+    public Day7(ITestOutputHelper helper)
+    {
+        _helper = helper;
+    }
 
     public string SolvePart1(string[] loadedInput)
     {
         var rootDir = BuildFileSystem(loadedInput);
-        
-        var sum = Calculate(rootDir);
-        return sum.ToString();
+        var sum = CalculateSumOfSmallDirectories(rootDir);
+        return sum.ToString(); 
+    }
+    
+    public string SolvePart2(string[] loadedInput)
+    {
+        var rootDir = BuildFileSystem(loadedInput);
+        var sum = GetSmallestDirectoryToDelete(rootDir);
+        return sum.ToString(); 
+    }
+
+    private int CalculateSumOfSmallDirectories(Dir root)
+    {
+        var sum = 0;
+        foreach (Dir subDir in root.SubDirectories)
+        {
+            TotalSize(subDir, filter:r => r < 100000, onFilter: totalSizeRecursive => sum += totalSizeRecursive);
+        }
+        return sum;
+    }
+    
+    private int GetSmallestDirectoryToDelete(Dir rootDir)
+    {
+        int limit = 30000000;
+        var free = 70000000 - TotalSize(rootDir, filter:_ => true, onFilter: _ => { });
+        var remainingToLimit = limit - free;
+
+        var possibleFolders = new List<int>();
+        foreach (Dir subDir in rootDir.SubDirectories)
+        {
+            TotalSize(subDir, filter:r => r > remainingToLimit, onFilter: totalSizeRecursive =>
+            {
+                possibleFolders.Add(totalSizeRecursive);
+            });
+        }
+
+        return possibleFolders.Min();
     }
 
     private Dir BuildFileSystem(string[] terminalLines)
     {
         var rootDir = new Dir("/", null);
         var currentDirectory = rootDir;
-        var currentPath = rootDir.FullPath;
         foreach (string terminalline in terminalLines)
         {
-            Match changeDirMatch = cmd_changeDir.Match(terminalline);
+            var changeDirMatch = cmd_changeDir.Match(terminalline);
             if (changeDirMatch.Success)
             {
-                string newPath = changeDirMatch.Groups[1].Value;
-                if (newPath == "/")
+                string cdArgument = changeDirMatch.Groups[1].Value;
+                currentDirectory = cdArgument switch
                 {
-                    currentPath = newPath;
-                    currentDirectory = rootDir;
-                    continue;
-                }
-
-                if (newPath != ".." && newPath != "/")
-                {
-                    currentPath += $"{newPath}/";
-                    currentDirectory = currentDirectory.SubDirectories.First(c => c.FullPath == currentPath);
-                    continue;
-                }
-
-                if (newPath == "..")
-                {
-                    string parentPath = currentPath.Split("/")[..^2].Aggregate((x, y) => x + "/" + y) + "/";
-                    currentPath = parentPath;
-                    currentDirectory = currentDirectory.Parent ?? rootDir;
-                    continue;
-                }
+                    "/" => rootDir,
+                    ".." => currentDirectory.Parent ?? rootDir,
+                    _ => currentDirectory.GetSubDir($"{cdArgument}/")
+                };
             }
 
-            Match cmdLsMatch = cmd_listDir.Match(terminalline);
-            if (cmdLsMatch.Success)
-            {
-                continue;
-            }
-
-            Match fsDirectoryMatch = fs_Directory.Match(terminalline);
+            var fsDirectoryMatch = fs_Directory.Match(terminalline);
             if (fsDirectoryMatch.Success)
             {
                 var dirFound = fsDirectoryMatch.Groups[1].Value;
-                var fullPath = currentPath == "/" ? $"/{dirFound}/" : $"{currentPath}{dirFound}/";
-                var newDir = new Dir(fullPath, currentDirectory);
-                currentDirectory.AddSubdirectory(newDir);
-                continue;
+                currentDirectory.AddSubdirectory(dirFound);
             }
 
-            Match fsFileMatch = fs_File.Match(terminalline);
+            var fsFileMatch = fs_File.Match(terminalline);
             if (fsFileMatch.Success)
             {
                 int fileSize = int.Parse(fsFileMatch.Groups[1].Value);
-                currentDirectory.FileSize += fileSize;
+                currentDirectory.TotalSize += fileSize;
             }
         }
 
         return rootDir;
     }
 
-    private int Calculate(Dir dir)
+    private int TotalSize(Dir dir, Func<int,bool> filter, Action<int> onFilter)
     {
-        var sumOfTotalSizes = 0;
-        foreach (Dir subDir in dir.SubDirectories)
+        var totalSizeRecursive = dir.TotalSize + dir.SubDirectories.Sum(subDir => TotalSize(subDir, filter, onFilter));
+
+        if (filter(totalSizeRecursive))
         {
-            TotalSize(subDir, OnSmallTotalSize: val => sumOfTotalSizes += val);
-        }
-        return sumOfTotalSizes;
-    }
-    
-    private int TotalSize(Dir dir, Action<int> OnSmallTotalSize)
-    {
-        var totalSize = dir.FileSize;
-        foreach (Dir subDir in dir.SubDirectories)
-        {
-            totalSize += TotalSize(subDir, OnSmallTotalSize);
+            onFilter(totalSizeRecursive);
         }
         
-        if (totalSize < 100000)
-        {
-            _testOutputHelper.WriteLine($"{dir.FullPath}: {totalSize}");
-            OnSmallTotalSize(totalSize);
-        }
-        
-        return totalSize;
+        return totalSizeRecursive;
     }
 }
 
@@ -116,26 +115,19 @@ public class Dir
         Parent = parent;
         _subDirectories = new List<Dir>();
     }
-
-    public string FullPath { get; set; }
-
-    public Dir? Parent { get; }
     
-
-    public void AddSubdirectory(Dir dir)
-    {
-        if (dir.FullPath == FullPath)
-        {
-            throw new Exception("La til et subdir med samme fullpath! som parent :/");
-        }
-
-        _subDirectories.Add(dir);
-    }
-    public int FileSize { get; set; }
+    public string FullPath { get; }
+    public Dir? Parent { get; }
+    public int TotalSize { get; set; }
     public IEnumerable<Dir> SubDirectories => _subDirectories;
 
-    public override string ToString()
+    public void AddSubdirectory(string dirFound)
     {
-        return $"FullPath: '{FullPath}' - ParentPath:'{Parent?.FullPath}' - SubDirectories: {_subDirectories.Count()} - Size: {FileSize}";
+        _subDirectories.Add(new Dir($"{FullPath}{dirFound}/", this));
+    }
+    
+    public Dir GetSubDir(string subPath)
+    {
+        return SubDirectories.First(c => c.FullPath == $"{FullPath}{subPath}");
     }
 }

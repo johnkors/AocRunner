@@ -2,7 +2,7 @@ public class Day7Tests : DayTests
 {
     public Day7Tests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
-        Daysolver = new Day7();
+        Daysolver = new Day7(testOutputHelper);
     }
 
     protected override string TestData =>
@@ -35,4 +35,8 @@ public class Day7Tests : DayTests
     protected override string ExpectedForTestInputPart1 => "95437";
     
     protected override string ExpectedForInputPart1 => "1582412";
+    
+    protected override string ExpectedForInputPart2 => "3696336";
+
+    protected override string ExpectedForTestInputPart2 => "24933642";
 }
