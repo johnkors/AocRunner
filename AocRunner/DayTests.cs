@@ -11,7 +11,7 @@ public abstract class DayTests
         _helper = helper;
     }
 
-    protected IDaySolver Daysolver { get; set; }
+    protected abstract IDaySolver Daysolver { get; }
 
     protected abstract string TestData { get; }
     protected abstract string ExpectedForTestInputPart1 { get; }

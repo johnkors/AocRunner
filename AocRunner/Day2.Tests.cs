@@ -2,8 +2,10 @@ public class Day2Tests : DayTests
 {
     public Day2Tests(ITestOutputHelper helper) : base(helper)
     {
-        Daysolver = new Day2();
     }
+    
+    protected override IDaySolver Daysolver => new Day2();
+    
     protected override string TestData =>
     """
     A Y

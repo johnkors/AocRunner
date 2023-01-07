@@ -4,8 +4,9 @@ public class Day5Tests : DayTests
 {
     public Day5Tests(ITestOutputHelper helper) : base(helper)
     {
-        Daysolver = new Day5();
     }
+
+    protected override IDaySolver Daysolver => new Day5();
 
     protected override string TestData =>
     """
