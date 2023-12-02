@@ -34,6 +34,21 @@ public static class InputExtensions
         }
     }
 
+    public static int CountUntil<T>(this IEnumerable<T> vals, Func<T, bool> breakOn)
+    {
+        var count = 0;
+        foreach (var val in vals)
+        {
+            count++;
+            if (breakOn(val))
+            {
+                break;
+            }
+        }
+
+        return count;
+    }
+
     public static int AsInt(this Match m, int i)
     {
         return int.Parse(m.Groups[i].Value);

@@ -1,3 +1,5 @@
+namespace Y2022;
+
 public class Day5 : IDaySolver
 {
     public string SolvePart1(string[] loadedInput)

@@ -6,12 +6,13 @@ public abstract class DayTests
 {
     protected readonly ITestOutputHelper _helper;
 
-    protected DayTests(ITestOutputHelper helper)
+    protected DayTests(ITestOutputHelper helper, IDaySolver daySolver)
     {
         _helper = helper;
+        Daysolver = daySolver;
     }
 
-    protected abstract IDaySolver Daysolver { get; }
+    protected virtual IDaySolver Daysolver { get; }
 
     protected abstract string TestData { get; }
     protected abstract string ExpectedForTestInputPart1 { get; }

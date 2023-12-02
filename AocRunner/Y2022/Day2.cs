@@ -1,6 +1,8 @@
 #pragma warning disable CS8509
 #pragma warning disable CS8524
 
+namespace Y2022;
+
 public class Day2 : IDaySolver
 {
     public string SolvePart1(string[] loadedInput)

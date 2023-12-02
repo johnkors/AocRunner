@@ -6,13 +6,14 @@ using ReverseMarkdown;
 
 public class Framework
 {
-    private readonly HttpClient HttpClient = new();
+    private readonly HttpClient _httpClient = new();
     private bool _loggedIn;
     private string? _session;
-    private readonly IDaySolver? _solver;
-    private int? _solverDay;
-    public static Action<string?> Logger { get; set; } = Console.WriteLine;
+    private readonly IDaySolver _solver;
+    private SolverDate? _solverDate;
+    private static Action<string?> Logger { get; set; } = Console.WriteLine;
     private const string EnvVariablename = "AOC_SESSION";
+    record SolverDate(int Year, int Day);
 
     private Framework(IDaySolver solver)
     {
@@ -34,7 +35,7 @@ public class Framework
 
     public void Solve1(IDaySolver solver)
     {
-        Info($"Solving day {GetSolverDay()} - part 1");
+        Info($"Solving day {GetSolverDate()} - part 1");
 
         var unfinishedPart = GetUnsolvedPart();
         if (unfinishedPart == null || unfinishedPart == 2)
@@ -48,7 +49,7 @@ public class Framework
             var submit = ShouldSubmit(sln);
             if (submit)
             {
-                var res = PostAnswer(GetSolverDay(), 1, sln);
+                var res = PostAnswer(GetSolverDate(), 1, sln);
                 External(res);
             }
         }
@@ -56,7 +57,7 @@ public class Framework
 
     public void Solve2(IDaySolver solver)
     {
-        Info($"Solving day {GetSolverDay()} - part 2");
+        Info($"Solving day {GetSolverDate().Day} - part 2");
         if (!_loggedIn)
         {
             Login();
@@ -82,7 +83,7 @@ public class Framework
             var submit = ShouldSubmit(sln);
             if (submit)
             {
-                var res = PostAnswer(GetSolverDay(), 2, sln);
+                var res = PostAnswer(GetSolverDate(), 2, sln);
                 External(res);
             }
         }
@@ -90,7 +91,7 @@ public class Framework
 
     private int? GetUnsolvedPart()
     {
-        var html = GetHtmlForDay(GetSolverDay()).GetAwaiter().GetResult();
+        var html = GetHtmlForDay(GetSolverDate()).GetAwaiter().GetResult();
         var regexInput = new Regex("""<input type="hidden" name="level" value="(.*?)\"/>""", RegexOptions.Compiled);
         var inputMatches = regexInput.Match(html);
 
@@ -114,6 +115,7 @@ public class Framework
         {
             return true;
         }
+
         Warn("Not submitting");
         return false;
     }
@@ -128,8 +130,9 @@ public class Framework
         }
 
         _session = environmentVariable;
-        HttpClient.DefaultRequestHeaders.Add("cookie", new []{ $"session={_session}" });
-        var res = HttpClient.GetAsync($"https://adventofcode.com/2022/day/{GetSolverDay()}/input").GetAwaiter().GetResult();
+        _httpClient.DefaultRequestHeaders.Add("cookie", new []{ $"session={_session}" });
+        var date = GetSolverDate();
+        var res = _httpClient.GetAsync($"https://adventofcode.com/{date.Year}/day/{date.Day}/input").GetAwaiter().GetResult();
         if (!res.IsSuccessStatusCode)
         {
             Error($"⛔️ Failed to login. StatusCode from adventofcode.com: {res.StatusCode}. Check/refresh your {EnvVariablename} env variable. Exiting..");
@@ -147,7 +150,7 @@ public class Framework
 
     public string? Solve(IDaySolver solver, Expression<SolvePartMethod> daySolverAction, LoadInputDelegate? loadInput = null)
     {
-        string? loadedInput = loadInput != null ? loadInput.Invoke() : GetInputForDay(GetSolverDay()).GetAwaiter().GetResult();
+        string? loadedInput = loadInput != null ? loadInput.Invoke() : GetInputForDay(GetSolverDate()).GetAwaiter().GetResult();
         if (string.IsNullOrEmpty(loadedInput))
         {
             Error("Failed to load input.");
@@ -170,7 +173,7 @@ public class Framework
         catch (NotImplementedException)
         {
             var type = solver.GetType();
-            Warn($"❌️ Could not run `{methodName}` for day {GetSolverDay()} using '{type.Namespace}.{type.Name}'. You need to implement it!");
+            Warn($"❌️ Could not run `{methodName}` for day {GetSolverDate()} using '{type.Namespace}.{type.Name}'. You need to implement it!");
         }
 
         return null;
@@ -220,21 +223,25 @@ public class Framework
         Console.ResetColor();
     }
 
-
-    public int GetSolverDay()
+    private SolverDate GetSolverDate()
     {
-        if (_solverDay != null)
-            return _solverDay.Value;
+        if (_solverDate is not null)
+            return _solverDate;
 
-        var regex = new Regex(@"Day(\d)", RegexOptions.Singleline);
-        var match = regex.Match(_solver!.GetType().Name);
-        if (match.Success)
+        Type solverType = _solver.GetType();
+        var dayMatch = new Regex(@"Day(\d)", RegexOptions.Singleline).Match(solverType.Name);
+        var yearMatch = new Regex(@"Y(\d{4})", RegexOptions.Singleline).Match(solverType.Namespace!);
+
+        if (dayMatch.Success && yearMatch.Success)
         {
-            _solverDay = int.Parse(match.Groups[1].Value);
-            return _solverDay.Value;
+            var solverDay = int.Parse(dayMatch.Groups[1].Value);
+            var solverYear = int.Parse(yearMatch.Groups[1].Value);
+            _solverDate = new SolverDate(solverYear, solverDay);
+            return _solverDate;
         }
 
-        throw new NotSupportedException("Your implementation type must follow the Day<X> naming convention");
+        throw new NotSupportedException("Your implementation type must follow the 'Day<\\d{1,2}>' naming convention in a " +
+                                        " 'Y<\\d{4}>' namespace");
     }
 
     static string GetMethodName(LambdaExpression expression)
@@ -246,14 +253,14 @@ public class Framework
         return methodInfo.Name;
     }
 
-    async Task<string?> GetInputForDay(int day)
+    async Task<string?> GetInputForDay(SolverDate date)
     {
-        string requestUri = $"https://adventofcode.com/2022/day/{day}/input";
-        var res = await HttpClient.GetAsync(requestUri);
+        string requestUri = $"https://adventofcode.com/{date.Year}/day/{date.Day}/input";
+        var res = await _httpClient.GetAsync(requestUri);
         var body = await res.Content.ReadAsStringAsync();
         if (!res.IsSuccessStatusCode)
         {
-            Info($":/ Could not input day {day} ({res.StatusCode})");
+            Info($":/ Could not input day {date} ({res.StatusCode})");
 
             Info($"-----");
             Info($"{body}");
@@ -268,13 +275,13 @@ public class Framework
         return body;
     }
 
-    async Task<string> GetHtmlForDay(int day)
+    async Task<string> GetHtmlForDay(SolverDate date)
     {
-        var res = await HttpClient.GetAsync($"https://adventofcode.com/2022/day/{day}");
+        var res = await _httpClient.GetAsync($"https://adventofcode.com/{date.Year}/day/{date.Day}");
         var body = await res.Content.ReadAsStringAsync();
         if (!res.IsSuccessStatusCode)
         {
-            Info($":/ Could not load task for day {day} ({res.StatusCode})");
+            Info($":/ Could not load task for day {date} ({res.StatusCode})");
 
             Info($"-----");
             Info($"{body}");
@@ -283,7 +290,7 @@ public class Framework
         return body;
     }
 
-    string PostAnswer(int day, int part, string answer)
+    string PostAnswer(SolverDate date, int part, string answer)
     {
         var nameValueCollection = new Dictionary<string,string>
         {
@@ -292,11 +299,11 @@ public class Framework
         };
         var formUrlEncodedContent = new FormUrlEncodedContent(nameValueCollection);
 
-        var res = HttpClient.PostAsync($"https://adventofcode.com/2022/day/{day}/answer", formUrlEncodedContent).GetAwaiter().GetResult();
+        var res = _httpClient.PostAsync($"https://adventofcode.com/{date.Year}/day/{date.Day}/answer", formUrlEncodedContent).GetAwaiter().GetResult();
         var body = res.Content.ReadAsStringAsync().GetAwaiter().GetResult();
         if (!res.IsSuccessStatusCode)
         {
-            Error($":/ Could not post answer {day} part {part} ({res.StatusCode})");
+            Error($":/ Could not post answer {date.Day} part {part} ({res.StatusCode})");
             Error($"-----");
             Error($"{body}");
             Error($"-----");
@@ -319,7 +326,7 @@ public class Framework
     public void PrintUnsolvedPartTask()
     {
         int unsolved = GetUnsolvedPart()!.Value;
-        var html = GetHtmlForDay(GetSolverDay()).GetAwaiter().GetResult();
+        var html = GetHtmlForDay(GetSolverDate()).GetAwaiter().GetResult();
         var regex = new Regex(@"<main>(.*?)</main>", RegexOptions.Singleline);
         var match = regex.Match(html);
         if (match.Success)
@@ -334,6 +341,7 @@ public class Framework
 
 public interface IDaySolver
 {
+    string Year => "2022";
     string SolvePart1(string[] loadedInput);
 
     string SolvePart2(string[] loadedInput) => "Not implemented";

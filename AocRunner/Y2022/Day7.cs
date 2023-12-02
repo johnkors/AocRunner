@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
-using _testOutputHelper = System.Console;
 
+namespace Y2022;
 
 public class Day7 : IDaySolver
 {

@@ -1,14 +1,9 @@
 using Xunit;
 
-public class Day6Tests : DayTests
+namespace Y2022;
+
+public class Day6Tests(ITestOutputHelper testOutputHelper) : DayTests(testOutputHelper, new Day6())
 {
-    public Day6Tests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
-    {
-    }
-
-    protected override IDaySolver Daysolver => new Day6();
-
-
     protected override string TestData =>
         """
         mjqjpqmgbljsphdztnvjfqwrcgsmlb
