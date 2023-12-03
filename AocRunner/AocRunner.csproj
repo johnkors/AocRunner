@@ -2,15 +2,13 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <LangVersion>preview</LangVersion>
         <!--
         https://andrewlock.net/fixing-the-error-program-has-more-than-one-entry-point-defined-for-console-apps-containing-xunit-tests/
          -->
         <GenerateProgramFile>false</GenerateProgramFile>
-        <RootNamespace> </RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

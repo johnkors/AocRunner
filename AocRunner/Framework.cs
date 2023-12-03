@@ -341,7 +341,6 @@ public class Framework
 
 public interface IDaySolver
 {
-    string Year => "2022";
     string SolvePart1(string[] loadedInput);
 
     string SolvePart2(string[] loadedInput) => "Not implemented";

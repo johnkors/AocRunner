@@ -1,7 +1,8 @@
 using Y2023;
 
-var day = new Day1();
-// Test.Verify(new Day8Tests(new TestOutputHelper()));
+
+var day = new Day1(new FakeHelper());
+Test.Verify(new Day1Tests(new FakeHelper()));
 var fw = Framework.Init(day, Console.WriteLine);
 if (fw.HasUnsolvedParts())
 {

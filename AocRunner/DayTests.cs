@@ -10,11 +10,13 @@ public abstract class DayTests
     {
         _helper = helper;
         Daysolver = daySolver;
+        TestData2 = TestData; // default;
     }
 
-    protected virtual IDaySolver Daysolver { get; }
+    protected IDaySolver Daysolver { get; }
 
     protected abstract string TestData { get; }
+    protected virtual string TestData2 { get; }
     protected abstract string ExpectedForTestInputPart1 { get; }
     protected virtual string ExpectedForTestInputPart2 => "Not implemented";
     protected virtual string ExpectedForInputPart1 => "Not implemented";
@@ -32,7 +34,7 @@ public abstract class DayTests
     public void TestPart2_WithTestData()
     {
         Skip.If(ExpectedForTestInputPart2 == "Not implemented", "ExpectedForTestInputPart2 not set");
-        var sln = Framework.Init(Daysolver, _helper.WriteLine).Solve(Daysolver, s => s.SolvePart2, loadInput:() => TestData);
+        var sln = Framework.Init(Daysolver, _helper.WriteLine).Solve(Daysolver, s => s.SolvePart2, loadInput:() => TestData2);
         Assert.NotNull(sln);
         Assert.Equal(ExpectedForTestInputPart2, sln);
     }

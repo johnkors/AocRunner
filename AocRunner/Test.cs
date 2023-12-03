@@ -14,15 +14,19 @@ public static class Test
 
     public static void Verify(DayTests baseTest)
     {
-        using var runner = AssemblyRunner.WithoutAppDomain(Assembly.GetExecutingAssembly().Location);
+        string assemblyFileName = Assembly.GetExecutingAssembly().Location;
+        Console.WriteLine($"Discovering tests in {assemblyFileName}...");
+        using var runner = AssemblyRunner.WithoutAppDomain(assemblyFileName);
         runner.OnDiscoveryComplete = OnDiscoveryComplete;
         runner.OnExecutionComplete = OnExecutionComplete;
         runner.OnTestFailed = OnTestFailed;
         runner.OnTestSkipped = OnTestSkipped;
         runner.OnTestPassed = OnTestPassed;
 
-        Console.WriteLine("Discovering...");
-        runner.Start(baseTest.GetType().Name);
+        string typeName = baseTest.GetType().Name;
+        Console.WriteLine($"Discovering tests in {typeName}...");
+
+        runner.Start(typeName);
         
         finished.WaitOne();
         finished.Dispose();
@@ -78,11 +82,11 @@ public class FakeHelper : ITestOutputHelper
 {
     public void WriteLine(string message)
     {
-        
+        Console.WriteLine(message);
     }
 
     public void WriteLine(string format, params object[] args)
     {
-        
+        Console.WriteLine(format, args);
     }
 }
