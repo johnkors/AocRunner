@@ -1,6 +1,6 @@
 using Y2023;
 
-var day = new Day2();
+var day = new Day3();
 var fw = Framework.Init(day, Console.WriteLine);
 if (fw.HasUnsolvedParts())
 {
