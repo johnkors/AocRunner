@@ -31,13 +31,12 @@ public class Day2 : IDaySolver
     {
         List<Game> games = [];
         var id = 1;
+        string ptrn = @"(\d+)\s(\w+)";
         foreach (string row in loadedInput)
         {
             var game = new Game(id);
             id++;
-
-            var matches = Regex.Matches(row, @"(\d+)\s(\w+)");
-            foreach (Match colorPickMatch in matches)
+            foreach (Match colorPickMatch in Regex.Matches(row, ptrn))
             {
                 game.ColorPicks.Add(new(int.Parse(colorPickMatch.Groups[1].Value), colorPickMatch.Groups[2].Value));
             }

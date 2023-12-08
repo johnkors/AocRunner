@@ -6,56 +6,17 @@ public class Day3 : IDaySolver
 {
     public string SolvePart1(string[] loadedInput)
     {
-        var paddedInput = PaddedInput(loadedInput);
-        var data = GetData(paddedInput);
-
+        var data = GetData(loadedInput);
         return data.Numbers.Where(n => n.Adjacent.Any()).Sum(n => n.Value).ToString();
     }
 
     public string SolvePart2(string[] loadedInput)
     {
-        var paddedInput = PaddedInput(loadedInput);
-        var data = GetData(paddedInput);
-
+        var data = GetData(loadedInput);
         return data.Symbols
             .Where(g => g is { Value: "*", Adjacent.Count: 2})
             .Sum(s => s.Adjacent.Select(n => n.Value).Aggregate((x, y) => x * y))
             .ToString();
-    }
-
-    private void CalculateAdjacency(Number number, List<Symbol> dataSymbols)
-    {
-        foreach (Symbol symbol in dataSymbols)
-        {
-            if (symbol.RowIndex == number.RowIndex)
-            {
-                var first = number.ColumnIndices.First();
-                var last = number.ColumnIndices.Last();
-                var isLeftOfSymbol = symbol.ColumnIndex == first - 1;
-                var isRightOfSymbol = symbol.ColumnIndex == last + 1;
-                var isHorizontalAdjacent = isLeftOfSymbol || isRightOfSymbol;
-                if (isHorizontalAdjacent)
-                {
-                    symbol.AddAdjacentNumber(number);
-                    number.AddAdjacentSymbol(symbol);
-                }
-            }
-
-            if(symbol.RowIndex == number.RowIndex - 1 || symbol.RowIndex == number.RowIndex + 1 )
-            {
-                var first = number.ColumnIndices.First();
-                var last = number.ColumnIndices.Last();
-                var isLeftOfSymbol = symbol.ColumnIndex == first - 1;
-                var isRightOfSymbol = symbol.ColumnIndex == last + 1;
-                var isHorizontallyAdjacent = isLeftOfSymbol || isRightOfSymbol;
-                var isVerticallyAdjacent = number.ColumnIndices.Any(i => i == symbol.ColumnIndex);
-                if (isHorizontallyAdjacent || isVerticallyAdjacent)
-                {
-                    symbol.AddAdjacentNumber(number);
-                    number.AddAdjacentSymbol(symbol);
-                }
-            }
-        }
     }
 
     internal (List<Number> Numbers, List<Symbol> Symbols) GetData(string[] paddedInput)
@@ -108,9 +69,44 @@ public class Day3 : IDaySolver
         return (Numbers: allNumbers, Symbols: allSymbols);
     }
 
+    private void CalculateAdjacency(Number number, List<Symbol> dataSymbols)
+    {
+        foreach (Symbol symbol in dataSymbols)
+        {
+            if (symbol.RowIndex == number.RowIndex)
+            {
+                var first = number.ColumnIndices.First();
+                var last = number.ColumnIndices.Last();
+                var isLeftOfSymbol = symbol.ColumnIndex == first - 1;
+                var isRightOfSymbol = symbol.ColumnIndex == last + 1;
+                var isHorizontalAdjacent = isLeftOfSymbol || isRightOfSymbol;
+                if (isHorizontalAdjacent)
+                {
+                    symbol.AddAdjacentNumber(number);
+                    number.AddAdjacentSymbol(symbol);
+                }
+            }
+
+            if(symbol.RowIndex == number.RowIndex - 1 || symbol.RowIndex == number.RowIndex + 1 )
+            {
+                var first = number.ColumnIndices.First();
+                var last = number.ColumnIndices.Last();
+                var isLeftOfSymbol = symbol.ColumnIndex == first - 1;
+                var isRightOfSymbol = symbol.ColumnIndex == last + 1;
+                var isHorizontallyAdjacent = isLeftOfSymbol || isRightOfSymbol;
+                var isVerticallyAdjacent = number.ColumnIndices.Any(i => i == symbol.ColumnIndex);
+                if (isHorizontallyAdjacent || isVerticallyAdjacent)
+                {
+                    symbol.AddAdjacentNumber(number);
+                    number.AddAdjacentSymbol(symbol);
+                }
+            }
+        }
+    }
+
     internal record Symbol(int RowIndex, int ColumnIndex, string Value)
     {
-        public List<Number> Adjacent = new();
+        public readonly List<Number> Adjacent = new();
 
         public void AddAdjacentNumber(Number number)
         {
@@ -120,36 +116,11 @@ public class Day3 : IDaySolver
 
     internal record Number(int RowIndex, int[] ColumnIndices, int Value)
     {
-        public List<Symbol> Adjacent = new();
+        public readonly List<Symbol> Adjacent = new();
 
         public void AddAdjacentSymbol(Symbol number)
         {
             Adjacent.Add(number);
         }
-    }
-
-    private string[] PaddedInput(string[] loadedInput)
-    {
-        string[] paddedInput = [];
-        for (int i = 0; i < loadedInput.Length; i++)
-        {
-            var row = loadedInput[i];
-            if (i == 0)
-            {
-                paddedInput = paddedInput.Append(new String('.', row.Length + 2)).ToArray();
-                paddedInput = paddedInput.Append($".{row}.").ToArray();
-            }
-            else if(i == loadedInput.Length - 1)
-            {
-                paddedInput = paddedInput.Append($".{row}.").ToArray();
-                paddedInput = paddedInput.Append(new String('.', row.Length + 2)).ToArray();
-            }
-            else
-            {
-                paddedInput = paddedInput.Append($".{row}.").ToArray();
-            }
-        }
-
-        return paddedInput;
     }
 }

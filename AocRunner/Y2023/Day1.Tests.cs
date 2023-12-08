@@ -2,7 +2,7 @@ using Xunit;
 
 namespace Y2023;
 
-public class Day1Tests(ITestOutputHelper helper) : DayTests(helper, new Day1(helper))
+public class Day1Tests(ITestOutputHelper helper) : DayTests(helper, new Day1())
 {
     protected override string TestData =>
         """
