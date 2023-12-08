@@ -4,20 +4,17 @@ namespace Y2023;
 
 public class Day3 : IDaySolver
 {
-    public string SolvePart1(string[] loadedInput)
-    {
-        var data = GetData(loadedInput);
-        return data.Numbers.Where(n => n.Adjacent.Any()).Sum(n => n.Value).ToString();
-    }
+    public string SolvePart1(string[] loadedInput) =>
+        GetData(loadedInput).Numbers
+            .Where(n => n.Adjacent.Any())
+            .Sum(n => n.Value)
+            .ToString();
 
-    public string SolvePart2(string[] loadedInput)
-    {
-        var data = GetData(loadedInput);
-        return data.Symbols
+    public string SolvePart2(string[] loadedInput) =>
+            GetData(loadedInput).Symbols
             .Where(g => g is { Value: "*", Adjacent.Count: 2})
             .Sum(s => s.Adjacent.Select(n => n.Value).Aggregate((x, y) => x * y))
             .ToString();
-    }
 
     internal (List<Number> Numbers, List<Symbol> Symbols) GetData(string[] paddedInput)
     {

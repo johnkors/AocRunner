@@ -5,13 +5,11 @@ namespace Y2023;
 
 public class Day4 : IDaySolver
 {
-    public string SolvePart1(string[] loadedInput)
-    {
-        return loadedInput
+    public string SolvePart1(string[] loadedInput) =>
+        loadedInput
             .GetByPattern(@"Card\s+(\d+): (.*) \| (.*)", ToCard)
             .Sum(c => (int) Math.Pow(2, c.MatchCount - 1))
             .ToString(CultureInfo.InvariantCulture);
-    }
 
     public string SolvePart2(string[] loadedInput)
     {
@@ -28,9 +26,9 @@ public class Day4 : IDaySolver
             int numberOfCopiesToIncrement = counterPrCard[cardIndex];
 
             // increment next cards with number of copies of currentCard
-            for (var nextCardIndex = 0; nextCardIndex < card.MatchCount; nextCardIndex++)
+            for (var nextCardIndex = 1; nextCardIndex <= card.MatchCount; nextCardIndex++)
             {
-                counterPrCard[cardIndex + nextCardIndex + 1] += numberOfCopiesToIncrement;
+                counterPrCard[cardIndex + nextCardIndex] += numberOfCopiesToIncrement;
             }
         }
 

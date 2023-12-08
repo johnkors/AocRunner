@@ -4,27 +4,19 @@ namespace Y2023;
 
 public class Day1 : IDaySolver
 {
-    public string SolvePart1(string[] loadedInput)
-    {
-        string pattern = @"\d";
-        return loadedInput.Sum(s =>
-            {
-                string rowNum = $"{Regex.Match(s, pattern)}" +
-                                $"{Regex.Match(s, pattern, RegexOptions.RightToLeft)}";
-                return int.Parse(rowNum);
-            })
+    public string SolvePart1(string[] loadedInput) =>
+        loadedInput
+            .Sum(s => int.Parse($"{Regex.Match(s, @"\d")}" +
+                                $"{Regex.Match(s, @"\d", RegexOptions.RightToLeft)}"))
             .ToString();
-    }
+
+    const string ptrn = @"(one|two|three|four|five|six|seven|eight|nine)|(\d)";
 
     public string SolvePart2(string[] loadedInput)
     {
-        const string ptrn = @"(one|two|three|four|five|six|seven|eight|nine)|(\d)";
-        return loadedInput.Sum(row =>
-            {
-                string rowNum = $"{ToDigit(Regex.Match(row, ptrn).Value)}" +
-                                $"{ToDigit(Regex.Match(row, ptrn, RegexOptions.RightToLeft).Value)}";
-                return int.Parse(rowNum);
-            })
+        return loadedInput
+            .Sum(row => int.Parse(
+                $"{ToDigit(Regex.Match(row, ptrn).Value)}{ToDigit(Regex.Match(row, ptrn, RegexOptions.RightToLeft).Value)}"))
             .ToString();
     }
 
