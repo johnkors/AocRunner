@@ -1,4 +1,4 @@
-var day = new Y2023.Day6();
+var day = new Y2023.Day8(new FakeHelper());
 var fw = Framework.Init(day, Console.WriteLine);
 if (fw.HasUnsolvedParts())
 {
